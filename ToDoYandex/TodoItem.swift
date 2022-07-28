@@ -1,12 +1,3 @@
-//
-//  TodoItem.swift
-//  ToDoYandex
-//
-//  Created by Антон Таранов on 28.07.2022.
-//
-
-import Foundation
-
 import Foundation
 
 struct TodoItem: Identifiable {
@@ -50,7 +41,7 @@ extension TodoItem {
             }
             
             let dateFormatter = DateFormatter()
-            dateFormatter.timeStyle = .short
+            dateFormatter.timeStyle = .medium
             dateFormatter.dateStyle = .short
             
             return dateFormatter.date(from: string)
@@ -79,7 +70,7 @@ extension TodoItem {
     var json: Any {
         func dateToString(from date: Date) -> String {
             let dateFormatter = DateFormatter()
-            dateFormatter.timeStyle = .short
+            dateFormatter.timeStyle = .medium
             dateFormatter.dateStyle = .short
             
             return dateFormatter.string(from: date)
