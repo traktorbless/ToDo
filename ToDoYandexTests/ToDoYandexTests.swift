@@ -28,7 +28,7 @@ class ToDoYandexTests: XCTestCase {
     
     func testTodoItemEquals() {
         
-        XCTAssertEqual(item2, item1, "Ошибка! Они должны быть одинаковыми")
+        XCTAssertEqual(item2, item5, "Ошибка! Они должны быть одинаковыми")
     }
     
     func testTodoItemJsonWithCommonTask() {

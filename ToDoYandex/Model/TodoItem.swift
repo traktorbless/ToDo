@@ -9,8 +9,13 @@ struct TodoItem: Identifiable {
     let dateOfCreation: Date
     let dateOfChange: Date?
     
-    init(id: String = UUID().uuidString,text: String, priority: Priority,deadline: Date? = nil
-         ,isCompleted: Bool = false, dateOfCreation: Date = Date.now, dateOfChange: Date? = nil) {
+    init(id: String = UUID().uuidString,
+         text: String,
+         priority: Priority,
+         deadline: Date? = nil
+         ,isCompleted: Bool = false,
+         dateOfCreation: Date = Date.now,
+         dateOfChange: Date? = nil) {
         self.id = id
         self.text = text
         self.priority = priority
@@ -25,15 +30,21 @@ struct TodoItem: Identifiable {
         case unimportant = "Неважная"
         case common = "Обычная"
     }
-    
-    func test() {
-        
-    }
 }
 
 
 //MARK: Парсинг JSON и его создание из структуры
 extension TodoItem {
+    enum JsonKeys: String {
+        case id
+        case text
+        case priority
+        case isCompleted
+        case dateOfCreation
+        case deadline
+        case dateOfChange
+    }
+    
     static func parse(json: Any) -> TodoItem? {
         func stringToDate(from string: String?) -> Date? {
             guard let string = string else {
@@ -49,16 +60,16 @@ extension TodoItem {
         
         guard let dictionary = json as? [String: Any] else { return nil }
         
-        guard let id = dictionary["id"] as? String,
-              let text = dictionary["text"] as? String,
-              let isCompleted = dictionary["isCompleted"] as? Bool,
-              let stringDateOfCreation = dictionary["dateOfCreation"] as? String else {
+        guard let id = dictionary[JsonKeys.id.rawValue] as? String,
+              let text = dictionary[JsonKeys.text.rawValue] as? String,
+              let isCompleted = dictionary[JsonKeys.isCompleted.rawValue] as? Bool,
+              let stringDateOfCreation = dictionary[JsonKeys.dateOfCreation.rawValue] as? String else {
             return nil
         }
         
-        let priority = Priority(rawValue: dictionary["priority"] as? String ?? "Обычная") ?? .common
-        let stringDeadline = dictionary["deadline"] as? String
-        let stringDateOfChange = dictionary["dateOfChange"] as? String
+        let priority = (dictionary[JsonKeys.priority.rawValue] as? String).flatMap(Priority.init) ?? .common
+        let stringDeadline = dictionary[JsonKeys.deadline.rawValue] as? String
+        let stringDateOfChange = dictionary[JsonKeys.dateOfChange.rawValue] as? String
         
         if let dateOfCreation = stringToDate(from: stringDateOfCreation) {
             return TodoItem(id: id, text: text, priority: priority, deadline: stringToDate(from: stringDeadline) , isCompleted: isCompleted, dateOfCreation: dateOfCreation, dateOfChange: stringToDate(from: stringDateOfChange))
@@ -76,18 +87,20 @@ extension TodoItem {
             return dateFormatter.string(from: date)
         }
         
-        var dictionary: [String : Any] = ["id": id,"text": text, "isCompleted" : isCompleted,
-                                          "dateOfCreation": dateToString(from: dateOfCreation)]
+        var dictionary: [String : Any] = [JsonKeys.id.rawValue : id,
+                                          JsonKeys.text.rawValue : text,
+                                          JsonKeys.isCompleted.rawValue : isCompleted,
+                                          JsonKeys.dateOfCreation.rawValue : dateToString(from: dateOfCreation)]
         if priority != .common {
-            dictionary["priority"] = priority.rawValue
+            dictionary[JsonKeys.priority.rawValue] = priority.rawValue
         }
         
         if let deadline = deadline {
-            dictionary["deadline"] = dateToString(from: deadline)
+            dictionary[JsonKeys.deadline.rawValue] = dateToString(from: deadline)
         }
         
         if let dateOfChange = dateOfChange {
-            dictionary["dateOfChange"] = dateToString(from: dateOfChange)
+            dictionary[JsonKeys.dateOfChange.rawValue] = dateToString(from: dateOfChange)
         }
         
         return dictionary
