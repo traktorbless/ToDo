@@ -336,6 +336,9 @@ extension TaskViewController: UITableViewDelegate {
             if indexPath.row == 1  {
                 constraintHideDatePicker.isActive = false
                 constraintShowDatePicker.isActive = true
+                UIView.animate(withDuration: 0.3) {
+                    self.tableView.layoutIfNeeded()
+                }
             }
         }
         tableView.deselectRow(at: indexPath, animated: true)
