@@ -24,6 +24,10 @@ class TaskViewController: UIViewController {
         textView.isScrollEnabled = false
         textView.contentInset = UIEdgeInsets(top: 17, left: 16, bottom: 17, right: 16)
         textView.font = UIFont.systemFont(ofSize: 17)
+        textView.textColor = .label
+        if UITraitCollection.current.userInterfaceStyle == .dark {
+            textView.backgroundColor = UIColor(red: 0.14, green: 0.14, blue: 0.16, alpha: 1.0)
+        }
         textView.sizeToFit()
         textView.layer.borderWidth = 0
         textView.layer.cornerRadius = 20
@@ -33,6 +37,9 @@ class TaskViewController: UIViewController {
     
     private lazy var deleteButtonView: UIButton = {
         let button = UIButton(type: .system)
+        if UITraitCollection.current.userInterfaceStyle == .dark {
+            button.backgroundColor = UIColor(red: 0.14, green: 0.14, blue: 0.16, alpha: 1.0)
+        }
         button.translatesAutoresizingMaskIntoConstraints = false
         button.layer.cornerRadius = 20
         button.backgroundColor = .white
@@ -84,6 +91,7 @@ class TaskViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupColors()
         setupToDoItem()
         setupNavigationBar()
         setupView()
@@ -98,6 +106,19 @@ class TaskViewController: UIViewController {
 
 // MARK: Первоначальные настройки
 extension TaskViewController {
+    private func setupColors() {
+        if UITraitCollection.current.userInterfaceStyle == .dark {
+            view.backgroundColor = UIColor(red: 0.09, green: 0.09, blue: 0.09, alpha: 1.0)
+            textView.backgroundColor = UIColor(red: 0.14, green: 0.14, blue: 0.16, alpha: 1.0)
+            deleteButtonView.backgroundColor = UIColor(red: 0.14, green: 0.14, blue: 0.16, alpha: 1.0)
+            tableView.backgroundColor = UIColor(red: 0.14, green: 0.14, blue: 0.16, alpha: 1.0)
+            datePicker.backgroundColor = UIColor(red: 0.14, green: 0.14, blue: 0.16, alpha: 1.0)
+            deleteButtonView.setTitleColor(UIColor(red: 1.0, green: 0.27, blue: 0.23, alpha: 1.0), for: .normal)
+        } else {
+            view.backgroundColor = UIColor(red: 0.97, green: 0.97, blue: 0.95, alpha: 1.0)
+        }
+    }
+    
     private func setupView() {
         view.addSubview(scrollView)
         scrollView.addSubview(textView)
@@ -114,7 +135,6 @@ extension TaskViewController {
     }
     
     private func setupNavigationBar() {
-        view.backgroundColor = UIColor(red: 0.97, green: 0.97, blue: 0.95, alpha: 1.0)
         title = "Дело"
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Сохранить", style: .done, target: self, action: #selector(saveTask))
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Отменить", style: .plain, target: self, action: #selector(cancel))
@@ -289,12 +309,19 @@ extension TaskViewController: UITableViewDataSource {
                 let date = dateFormatter.string(from: datePicker.date)
                 content.secondaryText = "\(date)"
                 var property = content.secondaryTextProperties
-                property.color = UIColor(red: 0.0, green: 0.48, blue: 1.0, alpha: 1.0)
+                if UITraitCollection.current.userInterfaceStyle == .dark {
+                    property.color = UIColor(red: 0.04, green: 0.52, blue: 1.0, alpha: 1.0)
+                }else {
+                    property.color = UIColor(red: 0.0, green: 0.48, blue: 1.0, alpha: 1.0)
+                }
                 property.font = UIFont.systemFont(ofSize: 13)
                 content.secondaryTextProperties = property
             }
         } else if indexPath.row == 2 {
             cell.accessoryView = datePicker
+        }
+        if UITraitCollection.current.userInterfaceStyle == .dark {
+            cell.backgroundColor = UIColor(red: 0.14, green: 0.14, blue: 0.16, alpha: 1.0)
         }
         cell.contentConfiguration = content
         return cell
