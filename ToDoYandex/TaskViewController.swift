@@ -18,8 +18,9 @@ class TaskViewController: UIViewController {
     
     private lazy var todoItem: TodoItem? = FileCache(filename: filename).todoItems.last
     
-    private lazy var constraintHideDatePicker: NSLayoutConstraint = tableView.heightAnchor.constraint(equalToConstant: Constants.sizeOfCell * 2 - 5)
-    private lazy var constraintShowDatePicker: NSLayoutConstraint = tableView.heightAnchor.constraint(equalToConstant: Constants.sizeOfCell * 2 - 5 + Constants.sizeOfDatePickerCell)
+    private lazy var constraintHideDatePicker = tableView.heightAnchor.constraint(equalToConstant: Constants.sizeOfCell * 2 - 5)
+    private lazy var constraintShowDatePicker = tableView.heightAnchor.constraint(equalToConstant: Constants.sizeOfCell * 2 - 5 + Constants.sizeOfDatePickerCell)
+    private lazy var constraintForScrollView = scrollView.heightAnchor.constraint(equalToConstant: view.bounds.height - 16)
     private var constraintForKeyboard: NSLayoutConstraint?
     
     private lazy var textView: UITextView = {
@@ -103,12 +104,6 @@ class TaskViewController: UIViewController {
     
     override func viewDidLayoutSubviews() {
         scrollView.contentSize = .init(width: view.bounds.width, height: deleteButtonView.bounds.height + tableView.bounds.height + textView.bounds.height + 100)
-        
-        if let constraintForKeyboard = constraintForKeyboard {
-            if !constraintForKeyboard.isActive {
-                scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor,constant: 16).isActive = true
-            }
-        }
     }
 }
 
@@ -161,7 +156,7 @@ extension TaskViewController {
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.rightAnchor.constraint(equalTo: view.rightAnchor),
             scrollView.topAnchor.constraint(equalTo: view.topAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor,constant: -16)
+            constraintForScrollView
         ])
     }
     
@@ -284,12 +279,14 @@ extension TaskViewController {
     @objc private func kbWillShow(_ notification: Notification) {
         let userInfo = notification.userInfo
         let kbFrameSize = (userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as! NSValue).cgRectValue
-        constraintForKeyboard = scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -kbFrameSize.height)
+        constraintForKeyboard = scrollView.heightAnchor.constraint(equalToConstant: view.bounds.height - kbFrameSize.height)
+        constraintForScrollView.isActive = false
         constraintForKeyboard?.isActive = true
     }
     
     @objc private func kbWillHide() {
         constraintForKeyboard?.isActive = false
+        constraintForScrollView.isActive = true
     }
 }
 
