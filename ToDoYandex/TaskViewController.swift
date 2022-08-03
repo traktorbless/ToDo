@@ -2,6 +2,14 @@ import UIKit
 
 class TaskViewController: UIViewController {
     
+    private enum Constants {
+        static let sizeOfDatePickerCell: CGFloat = 295
+        static let sizeOfCell: CGFloat = 60
+        static let cornerRadius: CGFloat = 20
+    }
+    
+    private var deadline: Date?
+    
     private let filename = "Tasks"
     
     private let cellIdentifier = "Cell"
@@ -10,8 +18,8 @@ class TaskViewController: UIViewController {
     
     private lazy var todoItem: TodoItem? = FileCache(filename: filename).todoItems.last
     
-    private lazy var constraintHideDatePicker: NSLayoutConstraint = tableView.heightAnchor.constraint(equalToConstant: 115)
-    private lazy var constraintShowDatePicker: NSLayoutConstraint = tableView.heightAnchor.constraint(equalToConstant: datePicker.bounds.height + 70)
+    private lazy var constraintHideDatePicker: NSLayoutConstraint = tableView.heightAnchor.constraint(equalToConstant: Constants.sizeOfCell * 2 - 5)
+    private lazy var constraintShowDatePicker: NSLayoutConstraint = tableView.heightAnchor.constraint(equalToConstant: Constants.sizeOfCell * 2 - 5 + Constants.sizeOfDatePickerCell)
     private var constraintForKeyboard: NSLayoutConstraint?
     
     private lazy var textView: UITextView = {
@@ -22,7 +30,7 @@ class TaskViewController: UIViewController {
             textView.textColor = UIColor.lightGray
         }
         textView.isScrollEnabled = false
-        textView.contentInset = UIEdgeInsets(top: 17, left: 16, bottom: 17, right: 16)
+        textView.contentInset = UIEdgeInsets(top: 17, left: 16, bottom: 0, right: 16)
         textView.font = UIFont.systemFont(ofSize: 17)
         textView.textColor = .label
         if UITraitCollection.current.userInterfaceStyle == .dark {
@@ -30,7 +38,7 @@ class TaskViewController: UIViewController {
         }
         textView.sizeToFit()
         textView.layer.borderWidth = 0
-        textView.layer.cornerRadius = 20
+        textView.layer.cornerRadius = Constants.cornerRadius
         textView.delegate = self
         return textView
     }()
@@ -41,7 +49,7 @@ class TaskViewController: UIViewController {
             button.backgroundColor = UIColor(red: 0.14, green: 0.14, blue: 0.16, alpha: 1.0)
         }
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.layer.cornerRadius = 20
+        button.layer.cornerRadius = Constants.cornerRadius
         button.backgroundColor = .white
         button.addTarget(self, action: #selector(deleteTask), for: .touchDown)
         button.setTitle("Удалить", for: .normal)
@@ -61,19 +69,11 @@ class TaskViewController: UIViewController {
         tableView.delegate = self
         tableView.dataSource = self
         tableView.separatorInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
-        tableView.layer.cornerRadius = 20
+        tableView.layer.cornerRadius = Constants.cornerRadius
         tableView.tableFooterView = UIView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.isScrollEnabled = false
         return tableView
-    }()
-    
-    private lazy var datePicker: UIDatePicker = {
-        var datePicker = UIDatePicker()
-        datePicker.preferredDatePickerStyle = .inline
-        datePicker.setDate(Date.now + 86400, animated: false)
-        datePicker.addTarget(self, action: #selector(changeDate(_:)), for: .valueChanged)
-        return datePicker
     }()
     
     private lazy var scrollView: UIScrollView = {
@@ -95,12 +95,20 @@ class TaskViewController: UIViewController {
         setupToDoItem()
         setupNavigationBar()
         setupView()
+        tableView.delegate = self
+        tableView.dataSource = self
         setupConstraints()
         registerForKeyboardNotifications()
     }
     
     override func viewDidLayoutSubviews() {
         scrollView.contentSize = .init(width: view.bounds.width, height: deleteButtonView.bounds.height + tableView.bounds.height + textView.bounds.height + 100)
+        
+        if let constraintForKeyboard = constraintForKeyboard {
+            if !constraintForKeyboard.isActive {
+                scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor,constant: 16).isActive = true
+            }
+        }
     }
 }
 
@@ -112,7 +120,6 @@ extension TaskViewController {
             textView.backgroundColor = UIColor(red: 0.14, green: 0.14, blue: 0.16, alpha: 1.0)
             deleteButtonView.backgroundColor = UIColor(red: 0.14, green: 0.14, blue: 0.16, alpha: 1.0)
             tableView.backgroundColor = UIColor(red: 0.14, green: 0.14, blue: 0.16, alpha: 1.0)
-            datePicker.backgroundColor = UIColor(red: 0.14, green: 0.14, blue: 0.16, alpha: 1.0)
             deleteButtonView.setTitleColor(UIColor(red: 1.0, green: 0.27, blue: 0.23, alpha: 1.0), for: .normal)
         } else {
             view.backgroundColor = UIColor(red: 0.97, green: 0.97, blue: 0.95, alpha: 1.0)
@@ -130,7 +137,13 @@ extension TaskViewController {
         textView.text = todoItem?.text
         if let deadline = todoItem?.deadline {
             deadlineSwitch.setOn(true, animated: true)
-            datePicker.setDate(deadline, animated: true)
+            self.deadline = deadline
+        }
+        segmentControl.selectedSegmentIndex = 1
+        if todoItem?.priority == .important {
+            segmentControl.selectedSegmentIndex = 2
+        } else if todoItem?.priority == .unimportant {
+            segmentControl.selectedSegmentIndex = 0
         }
     }
     
@@ -148,7 +161,7 @@ extension TaskViewController {
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.rightAnchor.constraint(equalTo: view.rightAnchor),
             scrollView.topAnchor.constraint(equalTo: view.topAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor,constant: 16)
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor,constant: -16)
         ])
     }
     
@@ -197,7 +210,6 @@ extension TaskViewController {
         } else if priorityIndex == 2 {
             priority = .important
         }
-        let deadline: Date? = deadlineSwitch.isOn ? datePicker.date : nil
         let todoItem = TodoItem(id: "ID",
                                 text: textView.text,
                                 priority: priority,
@@ -226,11 +238,15 @@ extension TaskViewController {
         if !sender.isOn {
             constraintShowDatePicker.isActive = false
             constraintHideDatePicker.isActive = true
+            deadline = nil
+        } else {
+            deadline = Date.now + 86400
         }
         tableView.reloadData()
     }
     
     @objc private func changeDate(_ sender: UIDatePicker) {
+        self.deadline = sender.date
         tableView.reloadData()
     }
 }
@@ -283,66 +299,110 @@ extension TaskViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         if indexPath.row != 2 {
-            return 60
+            return Constants.sizeOfCell
         }
         
-        return datePicker.bounds.height
+        return Constants.sizeOfDatePickerCell
     }
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         3
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath)
-        var content = cell.defaultContentConfiguration()
-        if indexPath.row == 0 {
-            cell.accessoryView = segmentControl
-            content.text = "Важность"
-        } else if indexPath.row == 1 {
-            cell.accessoryView = deadlineSwitch
-            content.text = "Сделать до"
-            if deadlineSwitch.isOn {
-                let dateFormatter = DateFormatter()
-                dateFormatter.dateStyle = .medium
-                dateFormatter.timeStyle = .none
-                
-                let date = dateFormatter.string(from: datePicker.date)
-                content.secondaryText = "\(date)"
-                var property = content.secondaryTextProperties
-                if UITraitCollection.current.userInterfaceStyle == .dark {
-                    property.color = UIColor(red: 0.04, green: 0.52, blue: 1.0, alpha: 1.0)
-                }else {
-                    property.color = UIColor(red: 0.0, green: 0.48, blue: 1.0, alpha: 1.0)
+        if indexPath.row == 2 {
+            let cell = DatePickerCell()
+            cell.datePicker.addTarget(self, action: #selector(changeDate(_:)) , for: .valueChanged)
+            cell.datePicker.setDate(deadline ?? Date.now, animated: false)
+            return cell
+        } else {
+            let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath)
+            var content = cell.defaultContentConfiguration()
+            if indexPath.row == 0 {
+                cell.accessoryView = segmentControl
+                content.text = "Важность"
+            } else if indexPath.row == 1 {
+                cell.accessoryView = deadlineSwitch
+                content.text = "Сделать до"
+                if deadlineSwitch.isOn {
+                    if let deadline = deadline {
+                        let dateFormatter = DateFormatter()
+                        dateFormatter.dateStyle = .medium
+                        dateFormatter.timeStyle = .none
+                        
+                        let date = dateFormatter.string(from: deadline)
+                        content.secondaryText = "\(date)"
+                        var property = content.secondaryTextProperties
+                        if UITraitCollection.current.userInterfaceStyle == .dark {
+                            property.color = UIColor(red: 0.04, green: 0.52, blue: 1.0, alpha: 1.0)
+                        } else {
+                            property.color = UIColor(red: 0.0, green: 0.48, blue: 1.0, alpha: 1.0)
+                        }
+                        property.font = UIFont.systemFont(ofSize: 13)
+                        content.secondaryTextProperties = property
+                    }
                 }
-                property.font = UIFont.systemFont(ofSize: 13)
-                content.secondaryTextProperties = property
             }
-        } else if indexPath.row == 2 {
-            cell.accessoryView = datePicker
+            if UITraitCollection.current.userInterfaceStyle == .dark {
+                cell.backgroundColor = UIColor(red: 0.14, green: 0.14, blue: 0.16, alpha: 1.0)
+            }
+            cell.contentConfiguration = content
+            return cell
         }
-        if UITraitCollection.current.userInterfaceStyle == .dark {
-            cell.backgroundColor = UIColor(red: 0.14, green: 0.14, blue: 0.16, alpha: 1.0)
-        }
-        cell.contentConfiguration = content
-        return cell
     }
 }
 
 // MARK: Появление DatePicker
 extension TaskViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.beginUpdates()
         if deadlineSwitch.isOn {
             if indexPath.row == 1  {
-                constraintHideDatePicker.isActive = false
-                constraintShowDatePicker.isActive = true
-                UIView.animate(withDuration: 0.3) {
-                    self.tableView.layoutIfNeeded()
+                constraintHideDatePicker.isActive.toggle()
+                constraintShowDatePicker.isActive.toggle()
+                if constraintShowDatePicker.isActive {
+                    scrollView.contentSize.height += Constants.sizeOfDatePickerCell
+                } else {
+                    scrollView.contentSize.height -= Constants.sizeOfDatePickerCell
                 }
             }
         }
         tableView.deselectRow(at: indexPath, animated: true)
-        tableView.endUpdates()
     }
 }
 
+// MARK: DatePickerCell
+class DatePickerCell: UITableViewCell {
+    lazy var containerView: UIView = .init()
+    
+    lazy var datePicker: UIDatePicker = {
+        let picker = UIDatePicker()
+        picker.preferredDatePickerStyle = .inline
+        return picker
+    }()
+    
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        containerView.addSubview(datePicker)
+        contentView.addSubview(containerView)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        
+        let containerWidth = contentView.bounds.width
+        
+        datePicker.frame = .init(x: 0,
+                                 y: 0,
+                                 width: containerWidth,
+                                 height: 320)
+        
+        containerView.frame = .init(x: 0,
+                                    y: 0,
+                                    width: containerWidth,
+                                    height: 295)
+    }
+}
