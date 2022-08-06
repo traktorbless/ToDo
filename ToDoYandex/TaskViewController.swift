@@ -6,6 +6,7 @@ class TaskViewController: UIViewController {
         static let sizeOfDatePickerCell: CGFloat = 295
         static let sizeOfCell: CGFloat = 60
         static let cornerRadius: CGFloat = 20
+        static let fileCache = FileCache(filename: "Tasks")
     }
     
     private var deadline: Date?
@@ -20,7 +21,7 @@ class TaskViewController: UIViewController {
     
     private lazy var constraintHideDatePicker = tableView.heightAnchor.constraint(equalToConstant: Constants.sizeOfCell * 2 - 5)
     private lazy var constraintShowDatePicker = tableView.heightAnchor.constraint(equalToConstant: Constants.sizeOfCell * 2 - 5 + Constants.sizeOfDatePickerCell)
-    private lazy var constraintForScrollView = scrollView.heightAnchor.constraint(equalToConstant: view.bounds.height - 16)
+    private lazy var constraintForScrollView = scrollView.heightAnchor.constraint(equalToConstant: view.bounds.height - 100)
     private var constraintForKeyboard: NSLayoutConstraint?
     
     private lazy var textView: UITextView = {
@@ -80,7 +81,6 @@ class TaskViewController: UIViewController {
     private lazy var scrollView: UIScrollView = {
         let scroll = UIScrollView()
         scroll.translatesAutoresizingMaskIntoConstraints = false
-        scroll.insetsLayoutMarginsFromSafeArea = true
         return scroll
     }()
     
@@ -90,15 +90,23 @@ class TaskViewController: UIViewController {
         return segment
     }()
     
+    private lazy var hideKeyboardTapRecognizer: UITapGestureRecognizer = {
+        let tapRecognizer = UITapGestureRecognizer(
+            target: self,
+            action: #selector(oneTapped)
+        )
+        tapRecognizer.numberOfTapsRequired = 2
+        return tapRecognizer
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupColors()
         setupToDoItem()
         setupNavigationBar()
         setupView()
-        tableView.delegate = self
-        tableView.dataSource = self
         setupConstraints()
+        scrollView.addGestureRecognizer(hideKeyboardTapRecognizer)
         registerForKeyboardNotifications()
     }
     
@@ -153,17 +161,17 @@ extension TaskViewController {
 extension TaskViewController {
     private func setupConstraintForScrollView() {
         NSLayoutConstraint.activate([
-            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            scrollView.rightAnchor.constraint(equalTo: view.rightAnchor),
-            scrollView.topAnchor.constraint(equalTo: view.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            scrollView.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor),
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             constraintForScrollView
         ])
     }
     
     private func setupConstraintForTextView() {
         NSLayoutConstraint.activate([
-            textView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant:  16),
-            textView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant:  -16),
+            textView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant:  16),
+            textView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant:  -16),
             textView.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 16),
             textView.heightAnchor.constraint(greaterThanOrEqualToConstant: 120)
         ])
@@ -171,8 +179,8 @@ extension TaskViewController {
     
     private func setupConstraintForTableView() {
         NSLayoutConstraint.activate([
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
             tableView.topAnchor.constraint(equalTo: textView.bottomAnchor, constant: 16),
         ])
         constraintHideDatePicker.isActive = true
@@ -180,8 +188,8 @@ extension TaskViewController {
     
     private func setupConstraintForDeleteButton() {
         NSLayoutConstraint.activate([
-            deleteButtonView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            deleteButtonView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            deleteButtonView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            deleteButtonView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
             deleteButtonView.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 16),
             deleteButtonView.heightAnchor.constraint(equalToConstant: 50)
         ])
@@ -197,6 +205,10 @@ extension TaskViewController {
 
 // MARK: Targets
 extension TaskViewController {
+    @objc private func oneTapped() {
+        textView.resignFirstResponder()
+    }
+    
     @objc private func saveTask() {
         let priorityIndex = segmentControl.selectedSegmentIndex
         var priority = TodoItem.Priority.common

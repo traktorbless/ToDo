@@ -11,7 +11,7 @@ struct TodoItem: Identifiable {
     
     init(id: String = UUID().uuidString,
          text: String,
-         priority: Priority,
+         priority: Priority = .common,
          deadline: Date? = nil
          ,isCompleted: Bool = false,
          dateOfCreation: Date = Date.now,
