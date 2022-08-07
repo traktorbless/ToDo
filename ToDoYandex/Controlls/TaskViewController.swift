@@ -344,6 +344,11 @@ extension TaskViewController: UITableViewDelegate {
 
 // MARK: DatePickerCell
 class DatePickerCell: UITableViewCell {
+    private enum Constants {
+        static let datePickerHeight: CGFloat = 320
+        static let conteinerViewHeight: CGFloat = 295
+    }
+    
     lazy var containerView: UIView = .init()
     
     lazy var datePicker: UIDatePicker = {
@@ -370,11 +375,12 @@ class DatePickerCell: UITableViewCell {
         datePicker.frame = .init(x: 0,
                                  y: 0,
                                  width: containerWidth,
-                                 height: 320)
+                                 height: Constants.datePickerHeight
+        )
         
         containerView.frame = .init(x: 0,
                                     y: 0,
                                     width: containerWidth,
-                                    height: 295)
+                                    height: Constants.conteinerViewHeight)
     }
 }
