@@ -30,6 +30,18 @@ struct TodoItem: Identifiable {
         case unimportant = "Неважная"
         case common = "Обычная"
     }
+    
+    func makeCompleted() -> TodoItem {
+        TodoItem(
+            id: id,
+            text: text,
+            priority: priority,
+            deadline: deadline,
+            isCompleted: true,
+            dateOfCreation: dateOfCreation,
+            dateOfChange: Date.now
+        )
+    }
 }
 
 

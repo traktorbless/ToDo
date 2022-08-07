@@ -1,7 +1,13 @@
 import Foundation
 
 final class FileCache {
-    private(set) var todoItems: [TodoItem]
+    private(set) var todoItems: [TodoItem] {
+        didSet {
+            delegate?.updateItems()
+        }
+    }
+    
+    var delegate: FileCacheDelegate?
     
     @discardableResult func addNew(task: TodoItem) -> TodoItem? {
         if !todoItems.contains(task) {
@@ -70,4 +76,8 @@ final class FileCache {
             loadAllItems(from: filename)
         }
     }
+}
+
+protocol FileCacheDelegate: AnyObject {
+    func updateItems()
 }

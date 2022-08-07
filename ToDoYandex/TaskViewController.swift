@@ -6,18 +6,14 @@ class TaskViewController: UIViewController {
         static let sizeOfDatePickerCell: CGFloat = 295
         static let sizeOfCell: CGFloat = 60
         static let cornerRadius: CGFloat = 20
-        static let fileCache = FileCache(filename: "Tasks")
+        static let cellIdentifier = "Cell"
     }
     
     private var deadline: Date?
     
-    private let filename = "Tasks"
+    weak var delegate: TasksListViewContollerDelegate?
     
-    private let cellIdentifier = "Cell"
-    
-    private lazy var fileCache = FileCache(filename: filename)
-    
-    private lazy var todoItem: TodoItem? = FileCache(filename: filename).todoItems.last
+    var todoItem: TodoItem?
     
     private lazy var constraintHideDatePicker = tableView.heightAnchor.constraint(equalToConstant: Constants.sizeOfCell * 2 - 5)
     private lazy var constraintShowDatePicker = tableView.heightAnchor.constraint(equalToConstant: Constants.sizeOfCell * 2 - 5 + Constants.sizeOfDatePickerCell)
@@ -35,9 +31,7 @@ class TaskViewController: UIViewController {
         textView.contentInset = UIEdgeInsets(top: 17, left: 16, bottom: 0, right: 16)
         textView.font = UIFont.systemFont(ofSize: 17)
         textView.textColor = .label
-        if UITraitCollection.current.userInterfaceStyle == .dark {
-            textView.backgroundColor = UIColor(red: 0.14, green: 0.14, blue: 0.16, alpha: 1.0)
-        }
+        textView.backgroundColor = .backgroundGray
         textView.sizeToFit()
         textView.layer.borderWidth = 0
         textView.layer.cornerRadius = Constants.cornerRadius
@@ -47,15 +41,12 @@ class TaskViewController: UIViewController {
     
     private lazy var deleteButtonView: UIButton = {
         let button = UIButton(type: .system)
-        if UITraitCollection.current.userInterfaceStyle == .dark {
-            button.backgroundColor = UIColor(red: 0.14, green: 0.14, blue: 0.16, alpha: 1.0)
-        }
         button.translatesAutoresizingMaskIntoConstraints = false
         button.layer.cornerRadius = Constants.cornerRadius
-        button.backgroundColor = .white
+        button.backgroundColor = .backgroundGray
         button.addTarget(self, action: #selector(deleteTask), for: .touchDown)
         button.setTitle("Удалить", for: .normal)
-        button.setTitleColor(.red, for: .normal)
+        button.setTitleColor(.redApp, for: .normal)
         return button
     }()
     
@@ -67,7 +58,7 @@ class TaskViewController: UIViewController {
     
     private lazy var tableView: UITableView = {
         let tableView = UITableView()
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellIdentifier)
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: Constants.cellIdentifier)
         tableView.delegate = self
         tableView.dataSource = self
         tableView.separatorInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
@@ -101,7 +92,6 @@ class TaskViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupColors()
         setupToDoItem()
         setupNavigationBar()
         setupView()
@@ -117,19 +107,8 @@ class TaskViewController: UIViewController {
 
 // MARK: Первоначальные настройки
 extension TaskViewController {
-    private func setupColors() {
-        if UITraitCollection.current.userInterfaceStyle == .dark {
-            view.backgroundColor = UIColor(red: 0.09, green: 0.09, blue: 0.09, alpha: 1.0)
-            textView.backgroundColor = UIColor(red: 0.14, green: 0.14, blue: 0.16, alpha: 1.0)
-            deleteButtonView.backgroundColor = UIColor(red: 0.14, green: 0.14, blue: 0.16, alpha: 1.0)
-            tableView.backgroundColor = UIColor(red: 0.14, green: 0.14, blue: 0.16, alpha: 1.0)
-            deleteButtonView.setTitleColor(UIColor(red: 1.0, green: 0.27, blue: 0.23, alpha: 1.0), for: .normal)
-        } else {
-            view.backgroundColor = UIColor(red: 0.97, green: 0.97, blue: 0.95, alpha: 1.0)
-        }
-    }
-    
     private func setupView() {
+        view.backgroundColor = .background
         view.addSubview(scrollView)
         scrollView.addSubview(textView)
         scrollView.addSubview(tableView)
@@ -142,12 +121,8 @@ extension TaskViewController {
             deadlineSwitch.setOn(true, animated: true)
             self.deadline = deadline
         }
-        segmentControl.selectedSegmentIndex = 1
-        if todoItem?.priority == .important {
-            segmentControl.selectedSegmentIndex = 2
-        } else if todoItem?.priority == .unimportant {
-            segmentControl.selectedSegmentIndex = 0
-        }
+
+        segmentControl.selectedSegmentIndex = todoItem?.priority == .unimportant ? 0 : todoItem?.priority == .important ? 2 : 1
     }
     
     private func setupNavigationBar() {
@@ -211,34 +186,29 @@ extension TaskViewController {
     
     @objc private func saveTask() {
         let priorityIndex = segmentControl.selectedSegmentIndex
-        var priority = TodoItem.Priority.common
-        if priorityIndex == 0 {
-            priority = .unimportant
-        } else if priorityIndex == 2 {
-            priority = .important
-        }
-        let todoItem = TodoItem(id: "ID",
+        let priority: TodoItem.Priority = priorityIndex == 1 ? .common : priorityIndex == 0 ? .unimportant : .important
+        let dateOfCreation = todoItem?.dateOfCreation
+        let todoItem = TodoItem(id: todoItem?.id ?? UUID().uuidString,
                                 text: textView.text,
                                 priority: priority,
                                 deadline: deadline,
-                                isCompleted: false,
-                                dateOfCreation: Date.now,
+                                isCompleted: todoItem?.isCompleted ?? false,
+                                dateOfCreation: dateOfCreation ?? Date.now,
                                 dateOfChange: Date.now)
-        fileCache.remove(task: todoItem)
-        fileCache.addNew(task: todoItem)
-        fileCache.saveAllItems(to: filename)
+        delegate?.update(item: todoItem)
+        self.dismiss(animated: true)
     }
     
     @objc private func cancel() {
-        print("cancel")
+        self.dismiss(animated: true)
     }
     
     @objc private func deleteTask(_ sender: UIButton) {
         guard let todoItem = todoItem else {
             return
         }
-        fileCache.remove(task: todoItem)
-        fileCache.saveAllItems(to: filename)
+        delegate?.delete(item: todoItem)
+        self.dismiss(animated: true)
     }
     
     @objc private func addDeadline(_ sender: UISwitch) {
@@ -303,7 +273,6 @@ extension TaskViewController {
 }
 
 // MARK: TableViewDataSource
-
 extension TaskViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -325,7 +294,7 @@ extension TaskViewController: UITableViewDataSource {
             cell.datePicker.setDate(deadline ?? Date.now, animated: false)
             return cell
         } else {
-            let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath)
+            let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellIdentifier, for: indexPath)
             var content = cell.defaultContentConfiguration()
             if indexPath.row == 0 {
                 cell.accessoryView = segmentControl
@@ -342,18 +311,11 @@ extension TaskViewController: UITableViewDataSource {
                         let date = dateFormatter.string(from: deadline)
                         content.secondaryText = "\(date)"
                         var property = content.secondaryTextProperties
-                        if UITraitCollection.current.userInterfaceStyle == .dark {
-                            property.color = UIColor(red: 0.04, green: 0.52, blue: 1.0, alpha: 1.0)
-                        } else {
-                            property.color = UIColor(red: 0.0, green: 0.48, blue: 1.0, alpha: 1.0)
-                        }
+                        property.color = .blueApp
                         property.font = UIFont.systemFont(ofSize: 13)
                         content.secondaryTextProperties = property
                     }
                 }
-            }
-            if UITraitCollection.current.userInterfaceStyle == .dark {
-                cell.backgroundColor = UIColor(red: 0.14, green: 0.14, blue: 0.16, alpha: 1.0)
             }
             cell.contentConfiguration = content
             return cell
@@ -363,6 +325,9 @@ extension TaskViewController: UITableViewDataSource {
 
 // MARK: Появление DatePicker
 extension TaskViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        cell.backgroundColor = .backgroundGray
+    }
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if deadlineSwitch.isOn {
             if indexPath.row == 1  {

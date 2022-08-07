@@ -13,8 +13,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let navigationController = UINavigationController(rootViewController: viewController)
         navigationController.navigationBar.prefersLargeTitles = true
         window.rootViewController = navigationController
+        configureNavbarTitle()
         window.makeKeyAndVisible()
         self.window = window
     }
+    
+    private func configureNavbarTitle() {
+        let style = NSMutableParagraphStyle()
+        style.firstLineHeadIndent = 16
+        UINavigationBar.appearance().largeTitleTextAttributes = [NSAttributedString.Key.paragraphStyle : style]
+    }
 }
-
