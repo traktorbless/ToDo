@@ -9,6 +9,11 @@ class TasksListViewContoller: UIViewController {
         static let filename = "Files"
         static let cellIndetifire = "Cell"
         static let cornerRaduis: CGFloat = 20
+        static let numberOfLinesInCell = 3
+        static let sizeOfFooterTableViewItem: CGFloat = 20
+        static let widthOfLabelNumberOfCompledTasks: CGFloat = 140
+        static let widthOfButtonHidingTasks: CGFloat = 70
+        static let standartSizeOfFont: CGFloat = 17
     }
     
     private let fileCache = FileCache(filename: Constants.filename)
@@ -30,7 +35,7 @@ class TasksListViewContoller: UIViewController {
         label.text = "Выполнено - \(numberOfCompletedTask)"
         label.textColor = .lightGray
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.systemFont(ofSize: 17)
+        label.font = UIFont.systemFont(ofSize: Constants.standartSizeOfFont)
         return label
     }()
     
@@ -109,7 +114,10 @@ class TasksListViewContoller: UIViewController {
         super.viewDidLayoutSubviews()
         setupFrames()
     }
-    
+}
+
+// MARK: Constraints
+extension TasksListViewContoller {
     private func setupConstraint() {
         NSLayoutConstraint.activate([
             scrollView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
@@ -119,17 +127,17 @@ class TasksListViewContoller: UIViewController {
         ])
         
         NSLayoutConstraint.activate([
-            numberOfCompleteTaskLabel.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 32),
-            numberOfCompleteTaskLabel.widthAnchor.constraint(equalToConstant: 140),
-            numberOfCompleteTaskLabel.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 16),
-            numberOfCompleteTaskLabel.heightAnchor.constraint(equalToConstant: 20)
+            numberOfCompleteTaskLabel.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: Constants.gap*2),
+            numberOfCompleteTaskLabel.widthAnchor.constraint(equalToConstant: Constants.widthOfLabelNumberOfCompledTasks),
+            numberOfCompleteTaskLabel.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: Constants.gap),
+            numberOfCompleteTaskLabel.heightAnchor.constraint(equalToConstant: Constants.sizeOfFooterTableViewItem)
         ])
         
         NSLayoutConstraint.activate([
-            areHiddenCompletedTasksButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -32 - view.safeAreaInsets.right),
-            areHiddenCompletedTasksButton.widthAnchor.constraint(equalToConstant: 70),
-            areHiddenCompletedTasksButton.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 16),
-            areHiddenCompletedTasksButton.heightAnchor.constraint(equalToConstant: 20)
+            areHiddenCompletedTasksButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -Constants.gap*2 - view.safeAreaInsets.right),
+            areHiddenCompletedTasksButton.widthAnchor.constraint(equalToConstant: Constants.widthOfButtonHidingTasks),
+            areHiddenCompletedTasksButton.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: Constants.gap),
+            areHiddenCompletedTasksButton.heightAnchor.constraint(equalToConstant: Constants.sizeOfFooterTableViewItem)
         ])
     }
 }
@@ -164,6 +172,7 @@ extension TasksListViewContoller {
 extension TasksListViewContoller {
     private func setupViewSettings() {
         view.backgroundColor = .background
+        fileCache.delegate = self
         title = "Мои дела"
     }
     
@@ -194,7 +203,7 @@ extension TasksListViewContoller: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        if indexPath.row == tableView.numberOfRows(inSection: 0) - 1 {
+        if indexPath.row == tasks.count {
             let cell = UITableViewCell(style: .default, reuseIdentifier: Constants.cellIndetifire)
             cell.textLabel?.textColor = .lightGray
             cell.textLabel?.text = "Новое"
@@ -206,7 +215,7 @@ extension TasksListViewContoller: UITableViewDataSource {
         let item = tasks[indexPath.row]
         let configurationForChevron = UIImage.SymbolConfiguration(paletteColors: [.lightGray])
         cell.accessoryView = UIImageView(image: UIImage(systemName: "chevron.right", withConfiguration: configurationForChevron))
-        cell.textLabel?.numberOfLines = 3
+        cell.textLabel?.numberOfLines = Constants.numberOfLinesInCell
         cell.detailTextLabel?.textColor = .gray
         cell.detailTextLabel?.font = UIFont.systemFont(ofSize: 15)
         if item.isCompleted {
@@ -346,17 +355,7 @@ extension TasksListViewContoller: UITableViewDelegate {
     }
 }
 
-// MARK: Изменение размерка картинки
-extension UIImage {
-    func resized(to size: CGSize) -> UIImage {
-        return UIGraphicsImageRenderer(size: size).image { _ in
-            draw(in: CGRect(origin: .zero, size: size))
-        }
-    }
-}
-
 // MARK: TasksListViewControllerDelegate
-
 protocol TasksListViewContollerDelegate: AnyObject {
     func update(item: TodoItem)
     func delete(item: TodoItem)
@@ -400,54 +399,6 @@ extension TasksListViewContoller: FileCacheDelegate {
         self.tableView.reloadData()
         DispatchQueue.main.async {
             self.view.setNeedsLayout()
-        }
-    }
-}
-
-// MARK: Цветовая палитра
-extension UIColor {
-    static let background = UIColor { traitCollection in
-        switch traitCollection.userInterfaceStyle {
-        case .dark:
-            return UIColor(red: 0, green: 0, blue: 0, alpha: 1.0)
-        default:
-            return UIColor(red: 0.97, green: 0.97, blue: 0.95, alpha: 1.0)
-        }
-    }
-    
-    static let backgroundGray = UIColor { traitCollection in
-        switch traitCollection.userInterfaceStyle {
-        case .dark:
-            return UIColor(red: 0.14, green: 0.14, blue: 0.16, alpha: 1.0)
-        default:
-            return UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
-        }
-    }
-    
-    static let blueApp = UIColor { traitCollection in
-        switch traitCollection.userInterfaceStyle {
-        case .dark:
-            return UIColor(red: 0.04, green: 0.52, blue: 1.0, alpha: 1.0)
-        default:
-            return UIColor(red: 0.0, green: 0.48, blue: 1.0, alpha: 1.0)
-        }
-    }
-    
-    static let greenApp = UIColor { traitCollection in
-        switch traitCollection.userInterfaceStyle {
-        case .dark:
-            return UIColor(red: 0.2, green: 0.84, blue: 0.29, alpha: 1.0)
-        default:
-            return UIColor(red: 0.2, green: 0.78, blue: 0.35, alpha: 1.0)
-        }
-    }
-    
-    static let redApp = UIColor { traitCollection in
-        switch traitCollection.userInterfaceStyle {
-        case .dark:
-            return UIColor(red: 1.0, green: 0.27, blue: 0.23, alpha: 1.0)
-        default:
-            return UIColor(red: 1.0, green: 0.23, blue: 0.19, alpha: 1.0)
         }
     }
 }
