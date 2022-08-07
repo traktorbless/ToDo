@@ -233,6 +233,20 @@ extension TasksListViewContoller: UITableViewDataSource {
         return cell
     }
     
+    // MARK: Поддержка preview
+    func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+        return UIContextMenuConfiguration(
+            identifier: nil,
+            previewProvider: { () -> UIViewController? in
+                let item = self.tasks[indexPath.row]
+                let taskViewController = TaskViewController()
+                taskViewController.todoItem = item
+                taskViewController.delegate = self
+                return taskViewController
+            }
+        )
+    }
+    
     private func makeTapRecognizerForRadioButton() -> UITapGestureRecognizer {
         let tapRecognizer = UITapGestureRecognizer(
             target: self,
@@ -317,6 +331,18 @@ extension TasksListViewContoller: UITableViewDelegate {
         makeTaskCompleted.image = UIImage(systemName: "checkmark.circle.fill")
         
         return UISwipeActionsConfiguration(actions: [makeTaskCompleted])
+    }
+    
+    // MARK: Поддержка preview
+    func tableView(_ tableView: UITableView, willPerformPreviewActionForMenuWith configuration: UIContextMenuConfiguration, animator: UIContextMenuInteractionCommitAnimating) {
+        guard let taskViewController = animator.previewViewController as? TaskViewController else {
+            return
+        }
+        let navController = UINavigationController(rootViewController: taskViewController)
+        
+        animator.addAnimations {
+            self.present(navController, animated: true)
+        }
     }
 }
 
