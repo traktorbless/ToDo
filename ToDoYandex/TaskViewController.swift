@@ -7,6 +7,7 @@ class TaskViewController: UIViewController {
         static let sizeOfCell: CGFloat = 60
         static let cornerRadius: CGFloat = 20
         static let cellIdentifier = "Cell"
+        static let separatorInset: CGFloat = 10
     }
     
     private var deadline: Date?
@@ -17,8 +18,6 @@ class TaskViewController: UIViewController {
     
     private lazy var constraintHideDatePicker = tableView.heightAnchor.constraint(equalToConstant: Constants.sizeOfCell * 2 - 5)
     private lazy var constraintShowDatePicker = tableView.heightAnchor.constraint(equalToConstant: Constants.sizeOfCell * 2 - 5 + Constants.sizeOfDatePickerCell)
-    private lazy var constraintForScrollView = scrollView.heightAnchor.constraint(equalToConstant: view.bounds.height - 100)
-    private var constraintForKeyboard: NSLayoutConstraint?
     
     private lazy var textView: UITextView = {
         let textView = UITextView()
@@ -61,7 +60,7 @@ class TaskViewController: UIViewController {
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: Constants.cellIdentifier)
         tableView.delegate = self
         tableView.dataSource = self
-        tableView.separatorInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
+        tableView.separatorInset = UIEdgeInsets(top: 0, left: Constants.separatorInset, bottom: 0, right: Constants.separatorInset)
         tableView.layer.cornerRadius = Constants.cornerRadius
         tableView.tableFooterView = UIView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
@@ -72,6 +71,8 @@ class TaskViewController: UIViewController {
     private lazy var scrollView: UIScrollView = {
         let scroll = UIScrollView()
         scroll.translatesAutoresizingMaskIntoConstraints = false
+        scroll.showsVerticalScrollIndicator = false
+        scroll.showsHorizontalScrollIndicator = false
         return scroll
     }()
     
@@ -139,7 +140,7 @@ extension TaskViewController {
             scrollView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             scrollView.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor),
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            constraintForScrollView
+            scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
     }
     
@@ -261,14 +262,11 @@ extension TaskViewController {
     @objc private func kbWillShow(_ notification: Notification) {
         let userInfo = notification.userInfo
         let kbFrameSize = (userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as! NSValue).cgRectValue
-        constraintForKeyboard = scrollView.heightAnchor.constraint(equalToConstant: view.bounds.height - kbFrameSize.height)
-        constraintForScrollView.isActive = false
-        constraintForKeyboard?.isActive = true
+        scrollView.contentInset.bottom = UIDevice.current.orientation == .portrait ? kbFrameSize.height : -kbFrameSize.height + tableView.bounds.height + deleteButtonView.bounds.height
     }
     
     @objc private func kbWillHide() {
-        constraintForKeyboard?.isActive = false
-        constraintForScrollView.isActive = true
+        scrollView.contentInset = UIEdgeInsets.zero
     }
 }
 

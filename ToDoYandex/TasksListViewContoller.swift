@@ -80,7 +80,16 @@ class TasksListViewContoller: UIViewController {
     private lazy var scrollView: UIScrollView = {
         let scrollView = UIScrollView()
         scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.showsVerticalScrollIndicator = false
+        scrollView.showsHorizontalScrollIndicator = false
         return scrollView
+    }()
+    
+    private lazy var saveAlert: UIAlertController = {
+        let alert = UIAlertController(title: "Ошибка сохранения", message: "Неудалось сохранить изменение. Возможно, у вас закончилась память", preferredStyle: .alert)
+        let alertAction = UIAlertAction(title: "ОК", style: .cancel)
+        alert.addAction(alertAction)
+        return alert
     }()
 
     override func viewDidLoad() {
@@ -278,8 +287,7 @@ extension TasksListViewContoller: UITableViewDelegate {
         guard indexPath.row < tasks.count else { return nil }
         let item = tasks[indexPath.row]
         let deleteAction = UIContextualAction(style: .destructive, title: nil) {_,_,_ in
-            self.fileCache.remove(task: item)
-            self.fileCache.saveAllItems(to: Constants.filename)
+            self.delete(item: item)
         }
         deleteAction.image = UIImage(systemName: "trash.fill")
         deleteAction.backgroundColor = .redApp
@@ -331,21 +339,31 @@ protocol TasksListViewContollerDelegate: AnyObject {
 
 extension TasksListViewContoller: TasksListViewContollerDelegate {
     func update(item: TodoItem) {
-        fileCache.remove(task: item)
         fileCache.addNew(task: item)
-        fileCache.saveAllItems(to: Constants.filename)
+        do {
+            try fileCache.saveAllItems(to: Constants.filename)
+        } catch {
+            self.present(saveAlert, animated: true)
+        }
     }
     
     func delete(item: TodoItem) {
         fileCache.remove(task: item)
-        fileCache.saveAllItems(to: Constants.filename)
+        do {
+            try fileCache.saveAllItems(to: Constants.filename)
+        } catch {
+            self.present(saveAlert, animated: true)
+        }
     }
     
     func makeCompleted(item: TodoItem) {
         let newItem = item.makeCompleted()
-        self.fileCache.remove(task: item)
         self.fileCache.addNew(task: newItem)
-        self.fileCache.saveAllItems(to: Constants.filename)
+        do {
+            try self.fileCache.saveAllItems(to: Constants.filename)
+        } catch {
+            self.present(saveAlert, animated: true)
+        }
     }
 }
 

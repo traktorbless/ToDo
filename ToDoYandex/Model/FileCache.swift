@@ -10,12 +10,12 @@ final class FileCache {
     var delegate: FileCacheDelegate?
     
     @discardableResult func addNew(task: TodoItem) -> TodoItem? {
-        if !todoItems.contains(task) {
+        guard let index = todoItems.firstIndex(of: task) else {
             todoItems.append(task)
             return task
-        } else {
-            return nil
         }
+        todoItems[index] = task
+        return task
     }
     
     @discardableResult func remove(task: TodoItem) -> TodoItem? {
@@ -27,8 +27,8 @@ final class FileCache {
         }
     }
     
-    func saveAllItems(to filename: String) {
-        guard let fileUrl = getFileURL(of: filename) else { return }
+    func saveAllItems(to filename: String) throws {
+        let fileUrl = try getFileURL(of: filename)
         
         var jsonItems = [[String : Any]]()
         for item in todoItems {
@@ -36,36 +36,31 @@ final class FileCache {
                 jsonItems.append(json)
             }
         }
-        do {
-            let data = try JSONSerialization.data(withJSONObject: jsonItems, options: [])
-            try data.write(to: fileUrl, options: [])
-        } catch {
-            print(error)
-        }
-    }
-    
-    func loadAllItems(from filename: String) {
-        guard let fileUrl = getFileURL(of: filename) else { return }
         
-        do {
-            let data = try Data(contentsOf: fileUrl)
-            
-            if let getJson = try JSONSerialization.jsonObject(with: data) as? [[String:Any]] {
-                for item in getJson {
-                    if let todoItem = TodoItem.parse(json: item) {
-                        addNew(task: todoItem)
-                    } else {
-                        print("Item have not been parsed")
-                    }
-                }
+        let data = try JSONSerialization.data(withJSONObject: jsonItems, options: [])
+        try data.write(to: fileUrl, options: [])
+    }
+    
+    func loadAllItems(from filename: String) throws {
+        let fileUrl = try getFileURL(of: filename)
+        
+        let data = try Data(contentsOf: fileUrl)
+        
+        guard let getJson = try JSONSerialization.jsonObject(with: data) as? [[String:Any]] else {
+            throw FileCacheErrors.unparsableData
+        }
+        
+        for item in getJson {
+            if let todoItem = TodoItem.parse(json: item) {
+                addNew(task: todoItem)
             }
-        } catch {
-            print(error)
         }
     }
     
-    private func getFileURL(of filename: String) -> URL? {
-        guard let documentsDirectoryUrl = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first else { return nil }
+    private func getFileURL(of filename: String) throws -> URL {
+        guard let documentsDirectoryUrl = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first else {
+            throw FileCacheErrors.cannotFindSystemDirectory
+        }
         
         return documentsDirectoryUrl.appendingPathComponent("\(filename).json")
     }
@@ -73,9 +68,14 @@ final class FileCache {
     init(filename: String? = nil) {
         todoItems = [TodoItem]()
         if let filename = filename {
-            loadAllItems(from: filename)
+            try? loadAllItems(from: filename)
         }
     }
+}
+
+enum FileCacheErrors: Error {
+    case cannotFindSystemDirectory
+    case unparsableData
 }
 
 protocol FileCacheDelegate: AnyObject {
