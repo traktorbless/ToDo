@@ -1,7 +1,7 @@
 import UIKit
 
 class TaskViewController: UIViewController {
-    
+
     private enum Constants {
         static let sizeOfDatePickerCell: CGFloat = 300
         static let sizeOfCell: CGFloat = 60
@@ -9,16 +9,16 @@ class TaskViewController: UIViewController {
         static let cellIdentifier = "Cell"
         static let separatorInset: CGFloat = 10
     }
-    
+
     private var deadline: Date?
-    
+
     weak var delegate: TasksListViewContollerDelegate?
-    
+
     var todoItem: TodoItem?
-    
+
     private lazy var constraintHideDatePicker = tableView.heightAnchor.constraint(equalToConstant: Constants.sizeOfCell * 2 - 5)
     private lazy var constraintShowDatePicker = tableView.heightAnchor.constraint(equalToConstant: Constants.sizeOfCell * 2 - 5 + Constants.sizeOfDatePickerCell)
-    
+
     private lazy var textView: UITextView = {
         let textView = UITextView()
         textView.translatesAutoresizingMaskIntoConstraints = false
@@ -37,7 +37,7 @@ class TaskViewController: UIViewController {
         textView.delegate = self
         return textView
     }()
-    
+
     private lazy var deleteButtonView: UIButton = {
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -48,13 +48,13 @@ class TaskViewController: UIViewController {
         button.setTitleColor(.redApp, for: .normal)
         return button
     }()
-    
+
     private lazy var deadlineSwitch: UISwitch = {
         let mySwitch = UISwitch()
         mySwitch.addTarget(self, action: #selector(addDeadline(_:)), for: .valueChanged)
         return mySwitch
     }()
-    
+
     private lazy var tableView: UITableView = {
         let tableView = UITableView()
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: Constants.cellIdentifier)
@@ -67,7 +67,7 @@ class TaskViewController: UIViewController {
         tableView.isScrollEnabled = false
         return tableView
     }()
-    
+
     private lazy var scrollView: UIScrollView = {
         let scroll = UIScrollView()
         scroll.translatesAutoresizingMaskIntoConstraints = false
@@ -75,13 +75,13 @@ class TaskViewController: UIViewController {
         scroll.showsHorizontalScrollIndicator = false
         return scroll
     }()
-    
+
     private lazy var segmentControl: UISegmentedControl = {
-        let segment = UISegmentedControl(items: ["↓","нет","‼️"])
+        let segment = UISegmentedControl(items: ["↓", "нет", "‼️"])
         segment.frame.size = .init(width: 150, height: 36)
         return segment
     }()
-    
+
     private lazy var hideKeyboardTapRecognizer: UITapGestureRecognizer = {
         let tapRecognizer = UITapGestureRecognizer(
             target: self,
@@ -90,7 +90,7 @@ class TaskViewController: UIViewController {
         tapRecognizer.numberOfTapsRequired = 2
         return tapRecognizer
     }()
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupToDoItem()
@@ -100,7 +100,7 @@ class TaskViewController: UIViewController {
         scrollView.addGestureRecognizer(hideKeyboardTapRecognizer)
         registerForKeyboardNotifications()
     }
-    
+
     override func viewDidLayoutSubviews() {
         scrollView.contentSize = .init(width: view.bounds.width, height: deleteButtonView.bounds.height + tableView.bounds.height + textView.bounds.height + 100)
     }
@@ -115,7 +115,7 @@ extension TaskViewController {
         scrollView.addSubview(tableView)
         scrollView.addSubview(deleteButtonView)
     }
-    
+
     private func setupToDoItem() {
         textView.text = todoItem?.text
         if let deadline = todoItem?.deadline {
@@ -125,7 +125,7 @@ extension TaskViewController {
 
         segmentControl.selectedSegmentIndex = todoItem?.priority == .unimportant ? 0 : todoItem?.priority == .important ? 2 : 1
     }
-    
+
     private func setupNavigationBar() {
         title = "Дело"
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Сохранить", style: .done, target: self, action: #selector(saveTask))
@@ -143,25 +143,25 @@ extension TaskViewController {
             scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
     }
-    
+
     private func setupConstraintForTextView() {
         NSLayoutConstraint.activate([
-            textView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant:  16),
-            textView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant:  -16),
+            textView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            textView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
             textView.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 16),
             textView.heightAnchor.constraint(greaterThanOrEqualToConstant: 120)
         ])
     }
-    
+
     private func setupConstraintForTableView() {
         NSLayoutConstraint.activate([
             tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
-            tableView.topAnchor.constraint(equalTo: textView.bottomAnchor, constant: 16),
+            tableView.topAnchor.constraint(equalTo: textView.bottomAnchor, constant: 16)
         ])
         constraintHideDatePicker.isActive = true
     }
-    
+
     private func setupConstraintForDeleteButton() {
         NSLayoutConstraint.activate([
             deleteButtonView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
@@ -170,7 +170,7 @@ extension TaskViewController {
             deleteButtonView.heightAnchor.constraint(equalToConstant: 50)
         ])
     }
-    
+
     private func setupConstraints() {
         setupConstraintForScrollView()
         setupConstraintForTextView()
@@ -184,7 +184,7 @@ extension TaskViewController {
     @objc private func oneTapped() {
         textView.resignFirstResponder()
     }
-    
+
     @objc private func saveTask() {
         let priorityIndex = segmentControl.selectedSegmentIndex
         let priority: TodoItem.Priority = priorityIndex == 1 ? .common : priorityIndex == 0 ? .unimportant : .important
@@ -199,11 +199,11 @@ extension TaskViewController {
         delegate?.update(item: todoItem)
         self.dismiss(animated: true)
     }
-    
+
     @objc private func cancel() {
         self.dismiss(animated: true)
     }
-    
+
     @objc private func deleteTask(_ sender: UIButton) {
         guard let todoItem = todoItem else {
             return
@@ -211,7 +211,7 @@ extension TaskViewController {
         delegate?.delete(item: todoItem)
         self.dismiss(animated: true)
     }
-    
+
     @objc private func addDeadline(_ sender: UISwitch) {
         if !sender.isOn {
             constraintShowDatePicker.isActive = false
@@ -222,7 +222,7 @@ extension TaskViewController {
         }
         tableView.reloadData()
     }
-    
+
     @objc private func changeDate(_ sender: UIDatePicker) {
         self.deadline = sender.date
         tableView.reloadData()
@@ -238,7 +238,7 @@ extension TaskViewController: UITextViewDelegate {
             textView.textColor = UIColor.black
         }
     }
-    
+
     func textViewDidEndEditing(_ textView: UITextView) {
         if textView.text.isEmpty {
             textView.text = "Что надо сделать?"
@@ -253,18 +253,18 @@ extension TaskViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(kbWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(kbWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
-    
+
     private func removeKeyboardNotifications() {
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
     }
-    
+
     @objc private func kbWillShow(_ notification: Notification) {
         let userInfo = notification.userInfo
         let kbFrameSize = (userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as! NSValue).cgRectValue
         scrollView.contentInset.bottom = UIDevice.current.orientation == .portrait ? kbFrameSize.height : -kbFrameSize.height + tableView.bounds.height + deleteButtonView.bounds.height
     }
-    
+
     @objc private func kbWillHide() {
         scrollView.contentInset = UIEdgeInsets.zero
     }
@@ -272,15 +272,15 @@ extension TaskViewController {
 
 // MARK: TableViewDataSource
 extension TaskViewController: UITableViewDataSource {
-    
+
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         if indexPath.row != 2 {
             return Constants.sizeOfCell
         }
-        
+
         return Constants.sizeOfDatePickerCell
     }
-    
+
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         3
     }
@@ -288,7 +288,7 @@ extension TaskViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if indexPath.row == 2 {
             let cell = DatePickerCell()
-            cell.datePicker.addTarget(self, action: #selector(changeDate(_:)) , for: .valueChanged)
+            cell.datePicker.addTarget(self, action: #selector(changeDate(_:)), for: .valueChanged)
             cell.datePicker.setDate(deadline ?? Date.now, animated: false)
             return cell
         } else {
@@ -305,7 +305,7 @@ extension TaskViewController: UITableViewDataSource {
                         let dateFormatter = DateFormatter()
                         dateFormatter.dateStyle = .medium
                         dateFormatter.timeStyle = .none
-                        
+
                         let date = dateFormatter.string(from: deadline)
                         content.secondaryText = "\(date)"
                         var property = content.secondaryTextProperties
@@ -328,7 +328,7 @@ extension TaskViewController: UITableViewDelegate {
     }
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if deadlineSwitch.isOn {
-            if indexPath.row == 1  {
+            if indexPath.row == 1 {
                 constraintHideDatePicker.isActive.toggle()
                 constraintShowDatePicker.isActive.toggle()
                 if constraintShowDatePicker.isActive {
@@ -351,16 +351,16 @@ class DatePickerCell: UITableViewCell {
         picker.sizeToFit()
         return picker
     }()
-    
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         contentView.addSubview(datePicker)
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func layoutSubviews() {
         super.layoutSubviews()
         datePicker.frame = .init(x: 0,

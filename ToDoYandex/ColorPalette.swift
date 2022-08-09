@@ -9,7 +9,7 @@ extension UIColor {
             return UIColor(red: 0.97, green: 0.97, blue: 0.95, alpha: 1.0)
         }
     }
-    
+
     static let backgroundGray = UIColor { traitCollection in
         switch traitCollection.userInterfaceStyle {
         case .dark:
@@ -18,7 +18,7 @@ extension UIColor {
             return UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
         }
     }
-    
+
     static let blueApp = UIColor { traitCollection in
         switch traitCollection.userInterfaceStyle {
         case .dark:
@@ -27,7 +27,7 @@ extension UIColor {
             return UIColor(red: 0.0, green: 0.48, blue: 1.0, alpha: 1.0)
         }
     }
-    
+
     static let greenApp = UIColor { traitCollection in
         switch traitCollection.userInterfaceStyle {
         case .dark:
@@ -36,7 +36,7 @@ extension UIColor {
             return UIColor(red: 0.2, green: 0.78, blue: 0.35, alpha: 1.0)
         }
     }
-    
+
     static let redApp = UIColor { traitCollection in
         switch traitCollection.userInterfaceStyle {
         case .dark:

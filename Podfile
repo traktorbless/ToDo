@@ -4,4 +4,5 @@
 use_frameworks!
 target 'ToDoYandex' do
   pod 'CocoaLumberjack/Swift'
+  pod 'SwiftLint'
 end

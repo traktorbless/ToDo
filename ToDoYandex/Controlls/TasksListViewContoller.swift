@@ -2,7 +2,7 @@ import UIKit
 import CocoaLumberjack
 
 class TasksListViewContoller: UIViewController {
-    
+
     private enum Constants {
         static let gap: CGFloat = 16
         static let sizeOfAddButton: CGFloat = 54
@@ -16,21 +16,21 @@ class TasksListViewContoller: UIViewController {
         static let widthOfButtonHidingTasks: CGFloat = 70
         static let standartSizeOfFont: CGFloat = 17
     }
-    
+
     private let fileCache = FileCache(filename: Constants.filename)
-    
+
     private var tasks: [TodoItem] {
         areCompletedTasksHidden ? fileCache.todoItems.filter { !$0.isCompleted } : fileCache.todoItems
     }
-    
+
     private var numberOfCompletedTask: Int {
         fileCache.todoItems.reduce(into: 0) { partialResult, item in
             partialResult += item.isCompleted ? 1 : 0
         }
     }
-    
+
     private var areCompletedTasksHidden = true
-    
+
     private lazy var numberOfCompleteTaskLabel: UILabel = {
         let label = UILabel()
         label.text = "Выполнено - \(numberOfCompletedTask)"
@@ -39,7 +39,7 @@ class TasksListViewContoller: UIViewController {
         label.font = UIFont.systemFont(ofSize: Constants.standartSizeOfFont)
         return label
     }()
-    
+
     private lazy var areHiddenCompletedTasksButton: UIButton = {
         let button = UIButton(type: .system)
         button.backgroundColor = .background
@@ -49,7 +49,7 @@ class TasksListViewContoller: UIViewController {
         button.addTarget(self, action: #selector(hideOrShowCompletedTasks(_:)), for: .touchDown)
         return button
     }()
-    
+
     private lazy var tableView: UITableView = {
         let tableView = UITableView()
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: Constants.cellIndetifire)
@@ -60,7 +60,7 @@ class TasksListViewContoller: UIViewController {
         tableView.layer.cornerRadius = Constants.cornerRaduis
         return tableView
     }()
-    
+
     private lazy var addButton: UIImageView = {
         let image = UIImage(systemName: "plus.circle.fill")
         let imageView = UIImageView(image: image)
@@ -73,7 +73,7 @@ class TasksListViewContoller: UIViewController {
         imageView.isUserInteractionEnabled = true
         return imageView
     }()
-    
+
     private lazy var addTaskTapRecognizer: UITapGestureRecognizer = {
         let tapRecognizer = UITapGestureRecognizer(
             target: self,
@@ -82,7 +82,7 @@ class TasksListViewContoller: UIViewController {
         tapRecognizer.numberOfTapsRequired = 1
         return tapRecognizer
     }()
-    
+
     private lazy var scrollView: UIScrollView = {
         let scrollView = UIScrollView()
         scrollView.translatesAutoresizingMaskIntoConstraints = false
@@ -90,7 +90,7 @@ class TasksListViewContoller: UIViewController {
         scrollView.showsHorizontalScrollIndicator = false
         return scrollView
     }()
-    
+
     private lazy var saveAlert: UIAlertController = {
         let alert = UIAlertController(title: "Ошибка сохранения", message: "Неудалось сохранить изменение. Возможно, у вас закончилась память", preferredStyle: .alert)
         let alertAction = UIAlertAction(title: "ОК", style: .cancel)
@@ -105,12 +105,12 @@ class TasksListViewContoller: UIViewController {
         setupConstraint()
         fileCache.delegate = self
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         setupFrames()
     }
-    
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         setupFrames()
@@ -126,14 +126,14 @@ extension TasksListViewContoller {
             scrollView.topAnchor.constraint(equalTo: view.topAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
-        
+
         NSLayoutConstraint.activate([
             numberOfCompleteTaskLabel.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: Constants.gap*2),
             numberOfCompleteTaskLabel.widthAnchor.constraint(equalToConstant: Constants.widthOfLabelNumberOfCompledTasks),
             numberOfCompleteTaskLabel.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: Constants.gap),
             numberOfCompleteTaskLabel.heightAnchor.constraint(equalToConstant: Constants.sizeOfFooterTableViewItem)
         ])
-        
+
         NSLayoutConstraint.activate([
             areHiddenCompletedTasksButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -Constants.gap*2 - view.safeAreaInsets.right),
             areHiddenCompletedTasksButton.widthAnchor.constraint(equalToConstant: Constants.widthOfButtonHidingTasks),
@@ -150,7 +150,7 @@ extension TasksListViewContoller {
         sender.setTitle(areCompletedTasksHidden ? "Показать" : "Скрыть", for: .normal)
         tableView.reloadData()
     }
-    
+
     @objc private func addTask() {
         let taskController = TaskViewController()
         taskController.delegate = self
@@ -158,12 +158,12 @@ extension TasksListViewContoller {
         navContoller.modalPresentationStyle = .formSheet
         self.present(navContoller, animated: true)
     }
-    
+
     @objc private func makeTaskIsCompleted(_ sender: UITapGestureRecognizer) {
         guard let imageView = sender.view as? UIImageView else {
             return
         }
-        
+
         let item = tasks[imageView.tag]
         makeCompleted(item: item)
     }
@@ -176,7 +176,7 @@ extension TasksListViewContoller {
         fileCache.delegate = self
         title = "Мои дела"
     }
-    
+
     private func setupViews() {
         view.addSubview(scrollView)
         scrollView.addSubview(numberOfCompleteTaskLabel)
@@ -184,7 +184,7 @@ extension TasksListViewContoller {
         scrollView.addSubview(tableView)
         view.addSubview(addButton)
     }
-    
+
     private func setupFrames() {
         let yTableView = numberOfCompleteTaskLabel.frame.maxY + Constants.gap
         let xTableView: CGFloat = Constants.gap
@@ -202,7 +202,7 @@ extension TasksListViewContoller: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         tasks.count + 1
     }
-    
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if indexPath.row == tasks.count {
             let cell = UITableViewCell(style: .default, reuseIdentifier: Constants.cellIndetifire)
@@ -223,10 +223,10 @@ extension TasksListViewContoller: UITableViewDataSource {
             cell.textLabel?.attributedText = getStrikethroughText(string: item.text)
             cell.textLabel?.textColor = .lightGray
             let configuration = UIImage.SymbolConfiguration(paletteColors: [.greenApp])
-            cell.imageView?.image = UIImage(systemName: "checkmark.circle.fill",withConfiguration: configuration)?.resized(to: Constants.sizeOfRadioButton)
+            cell.imageView?.image = UIImage(systemName: "checkmark.circle.fill", withConfiguration: configuration)?.resized(to: Constants.sizeOfRadioButton)
             return cell
         }
-        
+
         var configurationForRadioButton = UIImage.SymbolConfiguration(paletteColors: [.lightGray])
         if let deadline = item.deadline {
             if deadline < Date.now {
@@ -235,14 +235,14 @@ extension TasksListViewContoller: UITableViewDataSource {
                 cell.detailTextLabel?.attributedText = getFormattedDeadlineString(deadline: deadline)
             }
         }
-        cell.imageView?.image = UIImage(systemName: "circle",withConfiguration: configurationForRadioButton)?.resized(to: Constants.sizeOfRadioButton)
+        cell.imageView?.image = UIImage(systemName: "circle", withConfiguration: configurationForRadioButton)?.resized(to: Constants.sizeOfRadioButton)
         cell.textLabel?.text = item.priority == .important ? "‼️\(item.text)" : item.text
         cell.imageView?.addGestureRecognizer(makeTapRecognizerForRadioButton())
         cell.imageView?.isUserInteractionEnabled = true
         cell.imageView?.tag = indexPath.row
         return cell
     }
-    
+
     // MARK: Поддержка preview
     func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
         return UIContextMenuConfiguration(
@@ -256,7 +256,7 @@ extension TasksListViewContoller: UITableViewDataSource {
             }
         )
     }
-    
+
     private func makeTapRecognizerForRadioButton() -> UITapGestureRecognizer {
         let tapRecognizer = UITapGestureRecognizer(
             target: self,
@@ -276,10 +276,10 @@ extension TasksListViewContoller: UITableViewDataSource {
         let date = dateFormatter.string(from: deadline)
         let textString = NSAttributedString(string: date)
         imageString.append(textString)
-        
+
         return imageString
     }
-    
+
     private func getStrikethroughText(string: String) -> NSAttributedString {
          NSAttributedString(
             string: string,
@@ -293,7 +293,7 @@ extension TasksListViewContoller: UITableViewDelegate {
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         cell.backgroundColor = .backgroundGray
     }
-    
+
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let taskController = TaskViewController()
         taskController.delegate = self
@@ -305,17 +305,17 @@ extension TasksListViewContoller: UITableViewDelegate {
         self.present(navController, animated: true, completion: nil)
         tableView.deselectRow(at: indexPath, animated: true)
     }
-    
+
     // MARK: Правый свайп ячейки
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         guard indexPath.row < tasks.count else { return nil }
         let item = tasks[indexPath.row]
-        let deleteAction = UIContextualAction(style: .destructive, title: nil) {_,_,_ in
+        let deleteAction = UIContextualAction(style: .destructive, title: nil) {_, _, _ in
             self.delete(item: item)
         }
         deleteAction.image = UIImage(systemName: "trash.fill")
         deleteAction.backgroundColor = .redApp
-        
+
         let getInfoAction = UIContextualAction(style: .normal, title: nil) { _, _, _ in
             let taskViewController = TaskViewController()
             let navController = UINavigationController(rootViewController: taskViewController)
@@ -326,8 +326,8 @@ extension TasksListViewContoller: UITableViewDelegate {
         }
         getInfoAction.image = UIImage(systemName: "info.circle.fill")
         getInfoAction.backgroundColor = .lightGray
-        
-        return UISwipeActionsConfiguration(actions: [deleteAction,getInfoAction])
+
+        return UISwipeActionsConfiguration(actions: [deleteAction, getInfoAction])
     }
     // MARK: Левый свайп ячейки
     func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
@@ -336,20 +336,20 @@ extension TasksListViewContoller: UITableViewDelegate {
         let makeTaskCompleted = UIContextualAction(style: .normal, title: nil) { _, _, _ in
             self.makeCompleted(item: item)
         }
-        
+
         makeTaskCompleted.backgroundColor = .greenApp
         makeTaskCompleted.image = UIImage(systemName: "checkmark.circle.fill")
-        
+
         return UISwipeActionsConfiguration(actions: [makeTaskCompleted])
     }
-    
+
     // MARK: Поддержка preview
     func tableView(_ tableView: UITableView, willPerformPreviewActionForMenuWith configuration: UIContextMenuConfiguration, animator: UIContextMenuInteractionCommitAnimating) {
         guard let taskViewController = animator.previewViewController as? TaskViewController else {
             return
         }
         let navController = UINavigationController(rootViewController: taskViewController)
-        
+
         animator.addAnimations {
             self.present(navController, animated: true)
         }
@@ -373,7 +373,7 @@ extension TasksListViewContoller: TasksListViewContollerDelegate {
             DDLogError("Item with ID: \(item.id) couldn't be update")
         }
     }
-    
+
     func delete(item: TodoItem) {
         fileCache.remove(task: item)
         do {
@@ -383,7 +383,7 @@ extension TasksListViewContoller: TasksListViewContollerDelegate {
             DDLogError("Item with ID: \(item.id) couldn't be delete")
         }
     }
-    
+
     func makeCompleted(item: TodoItem) {
         let newItem = item.makeCompleted()
         self.fileCache.addNew(task: newItem)
