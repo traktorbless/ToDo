@@ -1,4 +1,5 @@
 import UIKit
+import CocoaLumberjack
 
 class TasksListViewContoller: UIViewController {
     
@@ -369,6 +370,7 @@ extension TasksListViewContoller: TasksListViewContollerDelegate {
             try fileCache.saveAllItems(to: Constants.filename)
         } catch {
             self.present(saveAlert, animated: true)
+            DDLogError("Item with ID: \(item.id) couldn't be update")
         }
     }
     
@@ -378,6 +380,7 @@ extension TasksListViewContoller: TasksListViewContollerDelegate {
             try fileCache.saveAllItems(to: Constants.filename)
         } catch {
             self.present(saveAlert, animated: true)
+            DDLogError("Item with ID: \(item.id) couldn't be delete")
         }
     }
     
@@ -388,6 +391,7 @@ extension TasksListViewContoller: TasksListViewContollerDelegate {
             try self.fileCache.saveAllItems(to: Constants.filename)
         } catch {
             self.present(saveAlert, animated: true)
+            DDLogError("Item with ID: \(item.id) couldn't be completed")
         }
     }
 }

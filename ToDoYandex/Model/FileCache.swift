@@ -1,4 +1,5 @@
 import Foundation
+import CocoaLumberjack
 
 final class FileCache {
     private(set) var todoItems: [TodoItem] {
@@ -12,9 +13,11 @@ final class FileCache {
     @discardableResult func addNew(task: TodoItem) -> TodoItem? {
         guard let index = todoItems.firstIndex(of: task) else {
             todoItems.append(task)
+            DDLogInfo("Task with ID: \(task.id) have been added")
             return task
         }
         todoItems[index] = task
+        DDLogInfo("Task with ID: \(task.id) have been changed")
         return task
     }
     
@@ -23,6 +26,7 @@ final class FileCache {
         if let index = index {
             return todoItems.remove(at: index)
         } else {
+            DDLogWarn("Item haven't been found")
             return nil
         }
     }
