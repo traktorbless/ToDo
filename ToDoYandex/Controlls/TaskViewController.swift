@@ -3,7 +3,7 @@ import UIKit
 class TaskViewController: UIViewController {
 
     private enum Constants {
-        static let sizeOfDatePickerCell: CGFloat = 300
+        static let sizeOfDatePickerCell: CGFloat = 295
         static let sizeOfCell: CGFloat = 60
         static let cornerRadius: CGFloat = 20
         static let cellIdentifier = "Cell"
@@ -344,29 +344,43 @@ extension TaskViewController: UITableViewDelegate {
 
 // MARK: DatePickerCell
 class DatePickerCell: UITableViewCell {
-    lazy var datePicker: UIDatePicker = {
-        let picker = UIDatePicker()
-        picker.preferredDatePickerStyle = .inline
-        picker.datePickerMode = .date
-        picker.sizeToFit()
-        return picker
-    }()
+    private enum Constants {
+            static let datePickerHeight: CGFloat = 320
+            static let conteinerViewHeight: CGFloat = 295
+        }
 
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        contentView.addSubview(datePicker)
-    }
+        lazy var containerView: UIView = .init()
 
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
+        lazy var datePicker: UIDatePicker = {
+            let picker = UIDatePicker()
+            picker.preferredDatePickerStyle = .inline
+            return picker
+        }()
 
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        datePicker.frame = .init(x: 0,
-                                 y: 0,
-                                 width: contentView.bounds.width,
-                                 height: datePicker.bounds.height
-        )
+        override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+            super.init(style: style, reuseIdentifier: reuseIdentifier)
+            containerView.addSubview(datePicker)
+            contentView.addSubview(containerView)
+        }
+
+        required init?(coder: NSCoder) {
+            fatalError("init(coder:) has not been implemented")
+        }
+
+        override func layoutSubviews() {
+            super.layoutSubviews()
+
+            let containerWidth = contentView.bounds.width
+
+            datePicker.frame = .init(x: 0,
+                                     y: 0,
+                                     width: containerWidth,
+                                     height: Constants.datePickerHeight
+            )
+
+            containerView.frame = .init(x: 0,
+                                        y: 0,
+                                        width: containerWidth,
+                                        height: Constants.conteinerViewHeight)
     }
 }
