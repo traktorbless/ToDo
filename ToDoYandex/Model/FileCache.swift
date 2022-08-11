@@ -8,7 +8,7 @@ final class FileCache {
         }
     }
 
-    var delegate: FileCacheDelegate?
+    weak var delegate: FileCacheDelegate?
 
     @discardableResult func addNew(task: TodoItem) -> TodoItem? {
         guard let index = todoItems.firstIndex(of: task) else {

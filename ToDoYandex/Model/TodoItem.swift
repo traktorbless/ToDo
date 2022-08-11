@@ -13,7 +13,7 @@ struct TodoItem: Identifiable {
          text: String,
          priority: Priority = .common,
          deadline: Date? = nil, isCompleted: Bool = false,
-         dateOfCreation: Date = Date.now,
+         dateOfCreation: Date = Date(),
          dateOfChange: Date? = nil) {
         self.id = id
         self.text = text
@@ -38,7 +38,7 @@ struct TodoItem: Identifiable {
             deadline: deadline,
             isCompleted: true,
             dateOfCreation: dateOfCreation,
-            dateOfChange: Date.now
+            dateOfChange: Date()
         )
     }
 }
@@ -82,7 +82,13 @@ extension TodoItem {
         let stringDateOfChange = dictionary[JsonKeys.dateOfChange.rawValue] as? String
 
         if let dateOfCreation = stringToDate(from: stringDateOfCreation) {
-            return TodoItem(id: id, text: text, priority: priority, deadline: stringToDate(from: stringDeadline), isCompleted: isCompleted, dateOfCreation: dateOfCreation, dateOfChange: stringToDate(from: stringDateOfChange))
+            return TodoItem(id: id,
+                            text: text,
+                            priority: priority,
+                            deadline: stringToDate(from: stringDeadline),
+                            isCompleted: isCompleted,
+                            dateOfCreation: dateOfCreation,
+                            dateOfChange: stringToDate(from: stringDateOfChange))
         }
 
         return nil

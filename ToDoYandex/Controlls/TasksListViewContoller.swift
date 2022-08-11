@@ -148,6 +148,7 @@ extension TasksListViewContoller {
     @objc private func hideOrShowCompletedTasks(_ sender: UIButton) {
         areCompletedTasksHidden.toggle()
         sender.setTitle(areCompletedTasksHidden ? "Показать" : "Скрыть", for: .normal)
+        print("Thread hideOrShowCompletedTasks: \(Thread.isMainThread)")
         tableView.reloadData()
     }
 
@@ -191,7 +192,10 @@ extension TasksListViewContoller {
         let widthTableView = view.bounds.width - Constants.gap * 2
         let height = tableView.contentSize.height
         tableView.frame = .init(x: xTableView, y: yTableView, width: widthTableView, height: height)
-        addButton.frame = .init(x: view.bounds.width / 2 - Constants.sizeOfAddButton / 2, y: view.bounds.height - Constants.sizeOfAddButton * 2, width: Constants.sizeOfAddButton, height: Constants.sizeOfAddButton)
+        addButton.frame = .init(x: view.bounds.width / 2 - Constants.sizeOfAddButton / 2,
+                                y: view.bounds.height - Constants.sizeOfAddButton * 2,
+                                width: Constants.sizeOfAddButton,
+                                height: Constants.sizeOfAddButton)
         scrollView.contentSize = .init(width: view.bounds.width,
                                        height: height + numberOfCompleteTaskLabel.bounds.height + view.safeAreaInsets.top)
     }

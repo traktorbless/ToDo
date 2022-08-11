@@ -1,4 +1,5 @@
 import UIKit
+import DevelopmentPod
 
 class TaskViewController: UIViewController {
 
@@ -99,6 +100,7 @@ class TaskViewController: UIViewController {
         setupConstraints()
         scrollView.addGestureRecognizer(hideKeyboardTapRecognizer)
         registerForKeyboardNotifications()
+
     }
 
     override func viewDidLayoutSubviews() {
@@ -261,7 +263,7 @@ extension TaskViewController {
 
     @objc private func kbWillShow(_ notification: Notification) {
         let userInfo = notification.userInfo
-        let kbFrameSize = (userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as! NSValue).cgRectValue
+        guard let kbFrameSize = (userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue else { return }
         scrollView.contentInset.bottom = UIDevice.current.orientation == .portrait ? kbFrameSize.height : -kbFrameSize.height + tableView.bounds.height + deleteButtonView.bounds.height
     }
 
