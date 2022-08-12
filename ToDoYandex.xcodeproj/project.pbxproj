@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5D0F7ABA289BD3E30033FF39 /* TasksListViewContoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D0F7AB9289BD3E30033FF39 /* TasksListViewContoller.swift */; };
+		5D0F7ABB289BD3E30033FF39 /* TasksListViewContoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D0F7AB9289BD3E30033FF39 /* TasksListViewContoller.swift */; };
+		5D0F7ABC289BD3E30033FF39 /* TasksListViewContoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D0F7AB9289BD3E30033FF39 /* TasksListViewContoller.swift */; };
+		5D699A4828A4D9DA0078B17E /* TodoItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D699A4728A4D9DA0078B17E /* TodoItem.swift */; };
 		5D772BB728925B58003424C7 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D772BB628925B58003424C7 /* AppDelegate.swift */; };
 		5D772BB928925B58003424C7 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D772BB828925B58003424C7 /* SceneDelegate.swift */; };
 		5D772BBB28925B58003424C7 /* TaskViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D772BBA28925B58003424C7 /* TaskViewController.swift */; };
@@ -15,8 +19,11 @@
 		5D772BCE28925B59003424C7 /* ToDoYandexTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D772BCD28925B59003424C7 /* ToDoYandexTests.swift */; };
 		5D772BD828925B59003424C7 /* ToDoYandexUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D772BD728925B59003424C7 /* ToDoYandexUITests.swift */; };
 		5D772BDA28925B59003424C7 /* ToDoYandexUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D772BD928925B59003424C7 /* ToDoYandexUITestsLaunchTests.swift */; };
-		5D772BE728925D81003424C7 /* TodoItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D772BE628925D81003424C7 /* TodoItem.swift */; };
 		5D772BE928925EA4003424C7 /* FileCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D772BE828925EA4003424C7 /* FileCache.swift */; };
+		5D95E4CA28A298F100A79227 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 5D95E4C928A298F100A79227 /* .gitignore */; };
+		5DCAB91828A015AB001209C2 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DCAB91728A015AB001209C2 /* Extensions.swift */; };
+		5DE785EB28A6683900491A7D /* ColorPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DE785EA28A6683900491A7D /* ColorPalette.swift */; };
+		C4D7A2C9FAA72259A203B89F /* Pods_ToDoYandex.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 253784F1100BEA739C2207EB /* Pods_ToDoYandex.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,7 +43,23 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		5D699A4428A3EF340078B17E /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		253784F1100BEA739C2207EB /* Pods_ToDoYandex.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ToDoYandex.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		5D0F7AB9289BD3E30033FF39 /* TasksListViewContoller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksListViewContoller.swift; sourceTree = "<group>"; };
+		5D699A4728A4D9DA0078B17E /* TodoItem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TodoItem.swift; sourceTree = "<group>"; };
 		5D772BB328925B58003424C7 /* ToDoYandex.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ToDoYandex.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5D772BB628925B58003424C7 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		5D772BB828925B58003424C7 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -49,8 +72,13 @@
 		5D772BD328925B59003424C7 /* ToDoYandexUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ToDoYandexUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5D772BD728925B59003424C7 /* ToDoYandexUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToDoYandexUITests.swift; sourceTree = "<group>"; };
 		5D772BD928925B59003424C7 /* ToDoYandexUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToDoYandexUITestsLaunchTests.swift; sourceTree = "<group>"; };
-		5D772BE628925D81003424C7 /* TodoItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoItem.swift; sourceTree = "<group>"; };
 		5D772BE828925EA4003424C7 /* FileCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileCache.swift; sourceTree = "<group>"; };
+		5D95E4C928A298F100A79227 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		5DCAB91728A015AB001209C2 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		5DE785EA28A6683900491A7D /* ColorPalette.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorPalette.swift; sourceTree = "<group>"; };
+		5DF2AE7628A665110079C855 /* Pods */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Pods; sourceTree = "<group>"; };
+		A43DF8F8D745EF857B55223C /* Pods-ToDoYandex.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ToDoYandex.debug.xcconfig"; path = "Target Support Files/Pods-ToDoYandex/Pods-ToDoYandex.debug.xcconfig"; sourceTree = "<group>"; };
+		D75732542330E2E628448789 /* Pods-ToDoYandex.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ToDoYandex.release.xcconfig"; path = "Target Support Files/Pods-ToDoYandex/Pods-ToDoYandex.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +86,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C4D7A2C9FAA72259A203B89F /* Pods_ToDoYandex.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,13 +107,26 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		11E071214A171E761FFC6309 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				5DF2AE7628A665110079C855 /* Pods */,
+				A43DF8F8D745EF857B55223C /* Pods-ToDoYandex.debug.xcconfig */,
+				D75732542330E2E628448789 /* Pods-ToDoYandex.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 		5D772BAA28925B58003424C7 = {
 			isa = PBXGroup;
 			children = (
+				5D95E4C928A298F100A79227 /* .gitignore */,
 				5D772BB528925B58003424C7 /* ToDoYandex */,
 				5D772BCC28925B59003424C7 /* ToDoYandexTests */,
 				5D772BD628925B59003424C7 /* ToDoYandexUITests */,
 				5D772BB428925B58003424C7 /* Products */,
+				11E071214A171E761FFC6309 /* Pods */,
+				EE066F3403B4D2DEE79F8BDE /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -101,10 +143,12 @@
 		5D772BB528925B58003424C7 /* ToDoYandex */ = {
 			isa = PBXGroup;
 			children = (
+				5DE785EA28A6683900491A7D /* ColorPalette.swift */,
 				5D772BB628925B58003424C7 /* AppDelegate.swift */,
 				5D772BB828925B58003424C7 /* SceneDelegate.swift */,
+				5DCAB91728A015AB001209C2 /* Extensions.swift */,
 				5D772BEA28929533003424C7 /* Model */,
-				5D772BBA28925B58003424C7 /* TaskViewController.swift */,
+				5DCAB91428A014E8001209C2 /* Controlls */,
 				5D772BBF28925B59003424C7 /* Assets.xcassets */,
 				5D772BC128925B59003424C7 /* LaunchScreen.storyboard */,
 				5D772BC428925B59003424C7 /* Info.plist */,
@@ -132,10 +176,27 @@
 		5D772BEA28929533003424C7 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				5D772BE628925D81003424C7 /* TodoItem.swift */,
+				5D699A4728A4D9DA0078B17E /* TodoItem.swift */,
 				5D772BE828925EA4003424C7 /* FileCache.swift */,
 			);
 			path = Model;
+			sourceTree = "<group>";
+		};
+		5DCAB91428A014E8001209C2 /* Controlls */ = {
+			isa = PBXGroup;
+			children = (
+				5D772BBA28925B58003424C7 /* TaskViewController.swift */,
+				5D0F7AB9289BD3E30033FF39 /* TasksListViewContoller.swift */,
+			);
+			path = Controlls;
+			sourceTree = "<group>";
+		};
+		EE066F3403B4D2DEE79F8BDE /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				253784F1100BEA739C2207EB /* Pods_ToDoYandex.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -145,9 +206,13 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 5D772BDD28925B59003424C7 /* Build configuration list for PBXNativeTarget "ToDoYandex" */;
 			buildPhases = (
+				926878021B9FB4A97952790C /* [CP] Check Pods Manifest.lock */,
 				5D772BAF28925B58003424C7 /* Sources */,
 				5D772BB028925B58003424C7 /* Frameworks */,
 				5D772BB128925B58003424C7 /* Resources */,
+				911F03B200217827F8C0191F /* [CP] Embed Pods Frameworks */,
+				5D7B21D128A2B48D00D321BC /* ShellScript */,
+				5D699A4428A3EF340078B17E /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -243,6 +308,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5D772BC328925B59003424C7 /* LaunchScreen.storyboard in Resources */,
+				5D95E4CA28A298F100A79227 /* .gitignore in Resources */,
 				5D772BC028925B59003424C7 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -263,15 +329,77 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		5D7B21D128A2B48D00D321BC /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "export PATH=\"$PATH:/opt/homebrew/bin\"\nif which swiftlint > /dev/null; then\n  swiftlint autocorrect\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+		};
+		911F03B200217827F8C0191F /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-ToDoYandex/Pods-ToDoYandex-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-ToDoYandex/Pods-ToDoYandex-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ToDoYandex/Pods-ToDoYandex-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		926878021B9FB4A97952790C /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-ToDoYandex-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		5D772BAF28925B58003424C7 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5D0F7ABA289BD3E30033FF39 /* TasksListViewContoller.swift in Sources */,
 				5D772BBB28925B58003424C7 /* TaskViewController.swift in Sources */,
+				5DCAB91828A015AB001209C2 /* Extensions.swift in Sources */,
+				5DE785EB28A6683900491A7D /* ColorPalette.swift in Sources */,
 				5D772BB728925B58003424C7 /* AppDelegate.swift in Sources */,
-				5D772BE728925D81003424C7 /* TodoItem.swift in Sources */,
 				5D772BE928925EA4003424C7 /* FileCache.swift in Sources */,
+				5D699A4828A4D9DA0078B17E /* TodoItem.swift in Sources */,
 				5D772BB928925B58003424C7 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -280,6 +408,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5D0F7ABB289BD3E30033FF39 /* TasksListViewContoller.swift in Sources */,
 				5D772BCE28925B59003424C7 /* ToDoYandexTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -288,6 +417,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5D0F7ABC289BD3E30033FF39 /* TasksListViewContoller.swift in Sources */,
 				5D772BD828925B59003424C7 /* ToDoYandexUITests.swift in Sources */,
 				5D772BDA28925B59003424C7 /* ToDoYandexUITestsLaunchTests.swift in Sources */,
 			);
@@ -436,6 +566,7 @@
 		};
 		5D772BDE28925B59003424C7 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A43DF8F8D745EF857B55223C /* Pods-ToDoYandex.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -464,6 +595,7 @@
 		};
 		5D772BDF28925B59003424C7 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = D75732542330E2E628448789 /* Pods-ToDoYandex.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
