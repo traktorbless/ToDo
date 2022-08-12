@@ -56,6 +56,7 @@ extension TodoItem {
     }
 
     static func parse(json: Any) -> TodoItem? {
+        assert(!Thread.isMainThread)
         func stringToDate(from string: String?) -> Date? {
             guard let string = string else {
                 return nil
@@ -95,6 +96,7 @@ extension TodoItem {
      }
 
     var json: Any {
+        assert(!Thread.isMainThread)
         func dateToString(from date: Date) -> String {
             let dateFormatter = DateFormatter()
             dateFormatter.timeStyle = .medium

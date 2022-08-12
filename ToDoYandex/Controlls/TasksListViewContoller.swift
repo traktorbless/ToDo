@@ -53,10 +53,10 @@ class TasksListViewContoller: UIViewController {
     private lazy var tableView: UITableView = {
         let tableView = UITableView()
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: Constants.cellIndetifire)
-        tableView.dataSource = self
-        tableView.delegate = self
         tableView.isScrollEnabled = false
         tableView.tableFooterView = UIView()
+        tableView.dataSource = self
+        tableView.delegate = self
         tableView.layer.cornerRadius = Constants.cornerRaduis
         return tableView
     }()
@@ -148,7 +148,6 @@ extension TasksListViewContoller {
     @objc private func hideOrShowCompletedTasks(_ sender: UIButton) {
         areCompletedTasksHidden.toggle()
         sender.setTitle(areCompletedTasksHidden ? "Показать" : "Скрыть", for: .normal)
-        print("Thread hideOrShowCompletedTasks: \(Thread.isMainThread)")
         tableView.reloadData()
     }
 
@@ -160,7 +159,7 @@ extension TasksListViewContoller {
         self.present(navContoller, animated: true)
     }
 
-    @objc private func makeTaskIsCompleted(_ sender: UITapGestureRecognizer) {
+    @objc private func recongizerAction(_ sender: UITapGestureRecognizer) {
         guard let imageView = sender.view as? UIImageView else {
             return
         }
@@ -191,6 +190,7 @@ extension TasksListViewContoller {
         let xTableView: CGFloat = Constants.gap
         let widthTableView = view.bounds.width - Constants.gap * 2
         let height = tableView.contentSize.height
+        print(height)
         tableView.frame = .init(x: xTableView, y: yTableView, width: widthTableView, height: height)
         addButton.frame = .init(x: view.bounds.width / 2 - Constants.sizeOfAddButton / 2,
                                 y: view.bounds.height - Constants.sizeOfAddButton * 2,
@@ -203,9 +203,18 @@ extension TasksListViewContoller {
 
 // MARK: TableViewDataSource
 extension TasksListViewContoller: UITableViewDataSource {
+
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         tasks.count + 1
     }
+
+//    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+//        80
+//    }
+//
+//    func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
+//        UITableView.automaticDimension
+//    }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if indexPath.row == tasks.count {
@@ -251,8 +260,8 @@ extension TasksListViewContoller: UITableViewDataSource {
     func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
         return UIContextMenuConfiguration(
             identifier: nil,
-            previewProvider: { () -> UIViewController? in
-                let item = self.tasks[indexPath.row]
+            previewProvider: { [weak self] () -> UIViewController? in
+                let item = self?.tasks[indexPath.row]
                 let taskViewController = TaskViewController()
                 taskViewController.todoItem = item
                 taskViewController.delegate = self
@@ -264,7 +273,7 @@ extension TasksListViewContoller: UITableViewDataSource {
     private func makeTapRecognizerForRadioButton() -> UITapGestureRecognizer {
         let tapRecognizer = UITapGestureRecognizer(
             target: self,
-            action: #selector(makeTaskIsCompleted)
+            action: #selector(recongizerAction)
         )
         tapRecognizer.numberOfTouchesRequired = 1
         return tapRecognizer
@@ -369,33 +378,39 @@ protocol TasksListViewContollerDelegate: AnyObject {
 
 extension TasksListViewContoller: TasksListViewContollerDelegate {
     func update(item: TodoItem) {
-        fileCache.addNew(task: item)
-        do {
-            try fileCache.saveAllItems(to: Constants.filename)
-        } catch {
-            self.present(saveAlert, animated: true)
-            DDLogError("Item with ID: \(item.id) couldn't be update")
+        fileCache.addNew(item)
+        fileCache.saveAllItems(to: Constants.filename) { result in
+            switch result {
+            case .failure:
+                self.present(self.saveAlert, animated: true)
+            case .success:
+                print("Success")
+            }
         }
     }
 
     func delete(item: TodoItem) {
-        fileCache.remove(task: item)
-        do {
-            try fileCache.saveAllItems(to: Constants.filename)
-        } catch {
-            self.present(saveAlert, animated: true)
-            DDLogError("Item with ID: \(item.id) couldn't be delete")
+        fileCache.remove(item)
+        fileCache.saveAllItems(to: Constants.filename) { result in
+            switch result {
+            case .failure:
+                self.present(self.saveAlert, animated: true)
+            case .success:
+                print("Success")
+            }
         }
     }
 
     func makeCompleted(item: TodoItem) {
         let newItem = item.makeCompleted()
-        self.fileCache.addNew(task: newItem)
-        do {
-            try self.fileCache.saveAllItems(to: Constants.filename)
-        } catch {
-            self.present(saveAlert, animated: true)
-            DDLogError("Item with ID: \(item.id) couldn't be completed")
+        self.fileCache.addNew(newItem)
+        fileCache.saveAllItems(to: Constants.filename) { result in
+            switch result {
+            case .failure:
+                self.present(self.saveAlert, animated: true)
+            case .success:
+                print("Success")
+            }
         }
     }
 }
@@ -403,10 +418,11 @@ extension TasksListViewContoller: TasksListViewContollerDelegate {
 // MARK: FileCacheDelegate
 extension TasksListViewContoller: FileCacheDelegate {
     func updateItems() {
-        self.numberOfCompleteTaskLabel.text = "Выполнено - \(self.numberOfCompletedTask)"
-        self.tableView.reloadData()
         DispatchQueue.main.async {
-            self.view.setNeedsLayout()
+            self.tableView.reloadData()
+            self.tableView.invalidateIntrinsicContentSize()
+            self.tableView.layoutIfNeeded()
+            self.numberOfCompleteTaskLabel.text = "Выполнено - \(self.numberOfCompletedTask)"
         }
     }
 }
