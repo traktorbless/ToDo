@@ -22,6 +22,7 @@
 		5D772BE928925EA4003424C7 /* FileCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D772BE828925EA4003424C7 /* FileCache.swift */; };
 		5D95E4CA28A298F100A79227 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 5D95E4C928A298F100A79227 /* .gitignore */; };
 		5DCAB91828A015AB001209C2 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DCAB91728A015AB001209C2 /* Extensions.swift */; };
+		5DE785EB28A6683900491A7D /* ColorPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DE785EA28A6683900491A7D /* ColorPalette.swift */; };
 		C4D7A2C9FAA72259A203B89F /* Pods_ToDoYandex.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 253784F1100BEA739C2207EB /* Pods_ToDoYandex.framework */; };
 /* End PBXBuildFile section */
 
@@ -74,6 +75,8 @@
 		5D772BE828925EA4003424C7 /* FileCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileCache.swift; sourceTree = "<group>"; };
 		5D95E4C928A298F100A79227 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		5DCAB91728A015AB001209C2 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		5DE785EA28A6683900491A7D /* ColorPalette.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorPalette.swift; sourceTree = "<group>"; };
+		5DF2AE7628A665110079C855 /* Pods */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Pods; sourceTree = "<group>"; };
 		A43DF8F8D745EF857B55223C /* Pods-ToDoYandex.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ToDoYandex.debug.xcconfig"; path = "Target Support Files/Pods-ToDoYandex/Pods-ToDoYandex.debug.xcconfig"; sourceTree = "<group>"; };
 		D75732542330E2E628448789 /* Pods-ToDoYandex.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ToDoYandex.release.xcconfig"; path = "Target Support Files/Pods-ToDoYandex/Pods-ToDoYandex.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -107,6 +110,7 @@
 		11E071214A171E761FFC6309 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
+				5DF2AE7628A665110079C855 /* Pods */,
 				A43DF8F8D745EF857B55223C /* Pods-ToDoYandex.debug.xcconfig */,
 				D75732542330E2E628448789 /* Pods-ToDoYandex.release.xcconfig */,
 			);
@@ -139,6 +143,7 @@
 		5D772BB528925B58003424C7 /* ToDoYandex */ = {
 			isa = PBXGroup;
 			children = (
+				5DE785EA28A6683900491A7D /* ColorPalette.swift */,
 				5D772BB628925B58003424C7 /* AppDelegate.swift */,
 				5D772BB828925B58003424C7 /* SceneDelegate.swift */,
 				5DCAB91728A015AB001209C2 /* Extensions.swift */,
@@ -391,6 +396,7 @@
 				5D0F7ABA289BD3E30033FF39 /* TasksListViewContoller.swift in Sources */,
 				5D772BBB28925B58003424C7 /* TaskViewController.swift in Sources */,
 				5DCAB91828A015AB001209C2 /* Extensions.swift in Sources */,
+				5DE785EB28A6683900491A7D /* ColorPalette.swift in Sources */,
 				5D772BB728925B58003424C7 /* AppDelegate.swift in Sources */,
 				5D772BE928925EA4003424C7 /* FileCache.swift in Sources */,
 				5D699A4828A4D9DA0078B17E /* TodoItem.swift in Sources */,

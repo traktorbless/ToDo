@@ -5,5 +5,4 @@ use_frameworks!
 target 'ToDoYandex' do
   pod 'CocoaLumberjack/Swift'
   pod 'SwiftLint'
-  pod 'DevelopmentPod', :path => '/Users/traktor/Desktop/project/ToDoYandex/DevelopmentPod/DevelopmentPod.podspec'
 end
