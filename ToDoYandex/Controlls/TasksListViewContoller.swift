@@ -17,14 +17,16 @@ class TasksListViewContoller: UIViewController {
         static let standartSizeOfFont: CGFloat = 17
     }
 
-    private let fileCache = FileCache(filename: Constants.filename)
+    private let toDoItemService = ToDoItemsService(filename: Constants.filename)
+
+    private lazy var tableViewHeightConstraint: NSLayoutConstraint = tableView.heightAnchor.constraint(equalToConstant: tableView.contentSize.height)
 
     private var tasks: [TodoItem] {
-        areCompletedTasksHidden ? fileCache.todoItems.filter { !$0.isCompleted } : fileCache.todoItems
+        areCompletedTasksHidden ? toDoItemService.todoItems.filter { !$0.isCompleted } : toDoItemService.todoItems
     }
 
     private var numberOfCompletedTask: Int {
-        fileCache.todoItems.reduce(into: 0) { partialResult, item in
+        toDoItemService.todoItems.reduce(into: 0) { partialResult, item in
             partialResult += item.isCompleted ? 1 : 0
         }
     }
@@ -57,6 +59,7 @@ class TasksListViewContoller: UIViewController {
         tableView.tableFooterView = UIView()
         tableView.dataSource = self
         tableView.delegate = self
+        tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.layer.cornerRadius = Constants.cornerRaduis
         return tableView
     }()
@@ -98,12 +101,19 @@ class TasksListViewContoller: UIViewController {
         return alert
     }()
 
+    private lazy var loadAlert: UIAlertController = {
+        let alert = UIAlertController(title: "Ошибка загрузки", message: "Неудалось загрузить данные", preferredStyle: .alert)
+        let alertAction = UIAlertAction(title: "ОК", style: .cancel)
+        alert.addAction(alertAction)
+        return alert
+    }()
+
     override func viewDidLoad() {
         super.viewDidLoad()
+        loadItems()
         setupViewSettings()
         setupViews()
         setupConstraint()
-        fileCache.delegate = self
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -140,6 +150,14 @@ extension TasksListViewContoller {
             areHiddenCompletedTasksButton.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: Constants.gap),
             areHiddenCompletedTasksButton.heightAnchor.constraint(equalToConstant: Constants.sizeOfFooterTableViewItem)
         ])
+
+        NSLayoutConstraint.activate([
+            tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            tableView.topAnchor.constraint(equalTo: numberOfCompleteTaskLabel.bottomAnchor, constant: 10),
+            tableViewHeightConstraint
+        ])
+
     }
 }
 
@@ -171,9 +189,13 @@ extension TasksListViewContoller {
 
 // MARK: Первоначальный настройки
 extension TasksListViewContoller {
+    private func loadItems() {
+        toDoItemService.load()
+    }
+
     private func setupViewSettings() {
         view.backgroundColor = .background
-        fileCache.delegate = self
+        toDoItemService.delegate = self
         title = "Мои дела"
     }
 
@@ -186,18 +208,16 @@ extension TasksListViewContoller {
     }
 
     private func setupFrames() {
-        let yTableView = numberOfCompleteTaskLabel.frame.maxY + Constants.gap
-        let xTableView: CGFloat = Constants.gap
-        let widthTableView = view.bounds.width - Constants.gap * 2
+        tableView.invalidateIntrinsicContentSize()
+        tableView.layoutIfNeeded()
         let height = tableView.contentSize.height
-        print(height)
-        tableView.frame = .init(x: xTableView, y: yTableView, width: widthTableView, height: height)
         addButton.frame = .init(x: view.bounds.width / 2 - Constants.sizeOfAddButton / 2,
                                 y: view.bounds.height - Constants.sizeOfAddButton * 2,
                                 width: Constants.sizeOfAddButton,
                                 height: Constants.sizeOfAddButton)
         scrollView.contentSize = .init(width: view.bounds.width,
-                                       height: height + numberOfCompleteTaskLabel.bounds.height + view.safeAreaInsets.top)
+                                       height: height + numberOfCompleteTaskLabel.bounds.height + view.safeAreaInsets.bottom)
+        tableViewHeightConstraint.constant = height
     }
 }
 
@@ -207,14 +227,6 @@ extension TasksListViewContoller: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         tasks.count + 1
     }
-
-//    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-//        80
-//    }
-//
-//    func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
-//        UITableView.automaticDimension
-//    }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if indexPath.row == tasks.count {
@@ -378,51 +390,32 @@ protocol TasksListViewContollerDelegate: AnyObject {
 
 extension TasksListViewContoller: TasksListViewContollerDelegate {
     func update(item: TodoItem) {
-        fileCache.addNew(item)
-        fileCache.saveAllItems(to: Constants.filename) { result in
-            switch result {
-            case .failure:
-                self.present(self.saveAlert, animated: true)
-            case .success:
-                print("Success")
-            }
-        }
+        toDoItemService.addNew(item: item)
+        toDoItemService.save()
+
     }
 
     func delete(item: TodoItem) {
-        fileCache.remove(item)
-        fileCache.saveAllItems(to: Constants.filename) { result in
-            switch result {
-            case .failure:
-                self.present(self.saveAlert, animated: true)
-            case .success:
-                print("Success")
-            }
-        }
+        toDoItemService.remove(item: item)
+        toDoItemService.save()
     }
 
     func makeCompleted(item: TodoItem) {
         let newItem = item.makeCompleted()
-        self.fileCache.addNew(newItem)
-        fileCache.saveAllItems(to: Constants.filename) { result in
-            switch result {
-            case .failure:
-                self.present(self.saveAlert, animated: true)
-            case .success:
-                print("Success")
-            }
-        }
+        toDoItemService.addNew(item: newItem)
+        toDoItemService.save()
     }
 }
 
-// MARK: FileCacheDelegate
-extension TasksListViewContoller: FileCacheDelegate {
-    func updateItems() {
+ // MARK: ToDoItemsServiceProtocol
+ extension TasksListViewContoller: ToDoItemsServiceDelegate {
+    func updateView() {
+        assert(Thread.isMainThread)
+        self.numberOfCompleteTaskLabel.text = "Выполнено - \(self.numberOfCompletedTask)"
+        self.tableView.reloadData()
+        self.tableView.layoutIfNeeded()
         DispatchQueue.main.async {
-            self.tableView.reloadData()
-            self.tableView.invalidateIntrinsicContentSize()
-            self.tableView.layoutIfNeeded()
-            self.numberOfCompleteTaskLabel.text = "Выполнено - \(self.numberOfCompletedTask)"
+            self.view.setNeedsLayout()
         }
     }
-}
+ }

@@ -18,15 +18,14 @@ protocol FileCacheService {
 }
 
 final class FileCache: FileCacheService {
-    private(set) var todoItems: [TodoItem] {
-        didSet {
-            delegate?.updateItems()
-        }
-    }
-
-    weak var delegate: FileCacheDelegate?
+    private(set) var todoItems: [TodoItem]
 
     let queue: DispatchQueue
+
+    init(queue: DispatchQueue) {
+        todoItems = [TodoItem]()
+        self.queue = queue
+    }
 
     @discardableResult func addNew(_ newItem: TodoItem) -> TodoItem? {
         guard let index = todoItems.firstIndex(of: newItem) else {
@@ -34,7 +33,11 @@ final class FileCache: FileCacheService {
             DDLogInfo("Task with ID: \(newItem.id) have been added")
             return newItem
         }
-        todoItems[index] = newItem
+        let newItemDateOfChange = newItem.dateOfChange ?? newItem.dateOfCreation
+        let itemDateOfChange = todoItems[index].dateOfChange ?? todoItems[index].dateOfCreation
+        if itemDateOfChange < newItemDateOfChange {
+            todoItems[index] = newItem
+        }
         DDLogInfo("Task with ID: \(newItem.id) have been changed")
         return newItem
     }
@@ -46,24 +49,6 @@ final class FileCache: FileCacheService {
         } else {
             DDLogWarn("Item haven't been found")
             return nil
-        }
-    }
-
-    init(filename: String? = nil) {
-        todoItems = [TodoItem]()
-        self.queue = DispatchQueue(label: "FileCacheQueue", qos: .utility, attributes: .concurrent)
-        if let filename = filename {
-            let timeout = TimeInterval.random(in: 1..<3)
-            queue.asyncAfter(deadline: .now() + timeout, flags: .barrier) {
-                self.loadAllItems(from: filename) { result in
-                    switch result {
-                    case .success(let newTodoItems):
-                        self.todoItems.append(contentsOf: newTodoItems)
-                    case .failure(let error):
-                        print(error)
-                    }
-                }
-            }
         }
     }
 
@@ -95,25 +80,28 @@ final class FileCache: FileCacheService {
     }
 
     func loadAllItems(from filename: String, completion: @escaping (Result<[TodoItem], Error>) -> Void) {
-        assert(!Thread.isMainThread)
-        do {
-            let fileUrl = try self.getFileURL(of: filename)
+        let timeout = TimeInterval.random(in: 1..<3)
+        queue.asyncAfter(deadline: .now() + timeout, flags: .barrier) {
+            assert(!Thread.isMainThread)
+            do {
+                let fileUrl = try self.getFileURL(of: filename)
+                let data = try Data(contentsOf: fileUrl)
 
-            let data = try Data(contentsOf: fileUrl)
-
-            guard let getJson = try JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
-                throw FileCacheErrors.unparsableData
-            }
-
-            var todoItems = [TodoItem]()
-            for item in getJson {
-                if let todoItem = TodoItem.parse(json: item) {
-                    todoItems.append(todoItem)
+                guard let getJson = try JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
+                    throw FileCacheErrors.unparsableData
                 }
+
+                var todoItems = [TodoItem]()
+                for item in getJson {
+                    if let todoItem = TodoItem.parse(json: item) {
+                        todoItems.append(todoItem)
+                    }
+                }
+                self.todoItems = todoItems
+                completion(.success(todoItems))
+            } catch {
+                completion(.failure(error))
             }
-            completion(.success(todoItems))
-        } catch {
-            completion(.failure(error))
         }
     }
 
@@ -129,8 +117,4 @@ final class FileCache: FileCacheService {
 enum FileCacheErrors: Error {
     case cannotFindSystemDirectory
     case unparsableData
-}
-
-protocol FileCacheDelegate: AnyObject {
-    func updateItems()
 }
