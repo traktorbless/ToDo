@@ -62,7 +62,6 @@ class TaskViewController: UIViewController {
         tableView.dataSource = self
         tableView.separatorInset = UIEdgeInsets(top: 0, left: Constants.separatorInset, bottom: 0, right: Constants.separatorInset)
         tableView.layer.cornerRadius = Constants.cornerRadius
-        tableView.tableFooterView = UIView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.isScrollEnabled = false
         return tableView

@@ -22,7 +22,7 @@ class TasksListViewContoller: UIViewController {
     private lazy var tableViewHeightConstraint: NSLayoutConstraint = tableView.heightAnchor.constraint(equalToConstant: tableView.contentSize.height)
 
     private var tasks: [TodoItem] {
-        areCompletedTasksHidden ? toDoItemService.todoItems.filter { !$0.isCompleted } : toDoItemService.todoItems
+        isCompletedTasksHidden ? toDoItemService.todoItems.filter { !$0.isCompleted } : toDoItemService.todoItems
     }
 
     private var numberOfCompletedTask: Int {
@@ -31,7 +31,7 @@ class TasksListViewContoller: UIViewController {
         }
     }
 
-    private var areCompletedTasksHidden = true
+    private var isCompletedTasksHidden = true
 
     private lazy var numberOfCompleteTaskLabel: UILabel = {
         let label = UILabel()
@@ -56,7 +56,6 @@ class TasksListViewContoller: UIViewController {
         let tableView = UITableView()
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: Constants.cellIndetifire)
         tableView.isScrollEnabled = false
-        tableView.tableFooterView = UIView()
         tableView.dataSource = self
         tableView.delegate = self
         tableView.translatesAutoresizingMaskIntoConstraints = false
@@ -164,8 +163,8 @@ extension TasksListViewContoller {
 // MARK: Targets
 extension TasksListViewContoller {
     @objc private func hideOrShowCompletedTasks(_ sender: UIButton) {
-        areCompletedTasksHidden.toggle()
-        sender.setTitle(areCompletedTasksHidden ? "Показать" : "Скрыть", for: .normal)
+        isCompletedTasksHidden.toggle()
+        sender.setTitle(isCompletedTasksHidden ? "Показать" : "Скрыть", for: .normal)
         tableView.reloadData()
     }
 
