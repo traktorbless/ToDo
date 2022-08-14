@@ -5,7 +5,7 @@ struct TodoItem: Identifiable {
     let text: String
     let priority: Priority
     let deadline: Date?
-    let isCompleted: Bool
+    var isCompleted: Bool
     let dateOfCreation: Date
     let dateOfChange: Date?
 
@@ -30,17 +30,29 @@ struct TodoItem: Identifiable {
         case common = "Обычная"
     }
 
-    func makeCompleted() -> TodoItem {
+    var asCompleted: TodoItem {
         TodoItem(
             id: id,
             text: text,
             priority: priority,
             deadline: deadline,
-            isCompleted: true,
+            isCompleted: !self.isCompleted,
             dateOfCreation: dateOfCreation,
             dateOfChange: Date()
         )
     }
+
+//    func makeCompleted() -> TodoItem {
+//        TodoItem(
+//            id: id,
+//            text: text,
+//            priority: priority,
+//            deadline: deadline,
+//            isCompleted: true,
+//            dateOfCreation: dateOfCreation,
+//            dateOfChange: Date()
+//        )
+//    }
 }
 
 // MARK: Парсинг JSON и его создание из структуры

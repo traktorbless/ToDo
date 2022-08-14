@@ -249,6 +249,9 @@ extension TasksListViewContoller: UITableViewDataSource {
             cell.textLabel?.textColor = .lightGray
             let configuration = UIImage.SymbolConfiguration(paletteColors: [.greenApp])
             cell.imageView?.image = UIImage(systemName: "checkmark.circle.fill", withConfiguration: configuration)?.resized(to: Constants.sizeOfRadioButton)
+            cell.imageView?.addGestureRecognizer(makeTapRecognizerForRadioButton())
+            cell.imageView?.isUserInteractionEnabled = true
+            cell.imageView?.tag = indexPath.row
             return cell
         }
 
@@ -401,7 +404,7 @@ extension TasksListViewContoller: TasksListViewContollerDelegate {
     }
 
     func makeCompleted(item: TodoItem) {
-        let newItem = item.makeCompleted()
+        let newItem = item.asCompleted
         toDoItemService.addNew(item: newItem)
         toDoItemService.save()
     }

@@ -72,7 +72,7 @@ final class FileCache: FileCacheService {
                 } catch {
                     completion(.failure(error))
                 }
-                completion(.success(print("Save have been success")))
+                completion(.success(()))
             }
         } catch {
             completion(.failure(error))
