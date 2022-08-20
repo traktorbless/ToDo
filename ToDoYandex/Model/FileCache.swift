@@ -1,15 +1,18 @@
 import Foundation
 import CocoaLumberjack
 
+typealias saveFileCacheServiceComplition = (Result<Void, Error>) -> Void
+typealias loadFileCacheServiceComplition = (Result<[TodoItem], Error>) -> Void
+
 protocol FileCacheService {
   func saveAllItems(
     to filename: String,
-    completion: @escaping (Result<Void, Error>) -> Void
+    completion: @escaping saveFileCacheServiceComplition
   )
 
   func loadAllItems(
     from filename: String,
-    completion: @escaping (Result<[TodoItem], Error>) -> Void
+    completion: @escaping loadFileCacheServiceComplition
   )
 
   @discardableResult func addNew(_ newItem: TodoItem) -> TodoItem?
@@ -18,13 +21,17 @@ protocol FileCacheService {
 }
 
 final class FileCache: FileCacheService {
+    private enum Constants {
+        static let queueName = "com.FileCacheServiceQueue"
+    }
+
     private(set) var todoItems: [TodoItem]
 
     let queue: DispatchQueue
 
-    init(queue: DispatchQueue) {
+    init() {
         todoItems = [TodoItem]()
-        self.queue = queue
+        self.queue = DispatchQueue(label: Constants.queueName, attributes: .concurrent)
     }
 
     @discardableResult func addNew(_ newItem: TodoItem) -> TodoItem? {
@@ -38,7 +45,7 @@ final class FileCache: FileCacheService {
         if itemDateOfChange < newItemDateOfChange {
             todoItems[index] = newItem
         }
-        DDLogInfo("Task with ID: \(newItem.id) have been changed")
+        DDLogInfo("Task with ID: \(newItem.id) have been changed in file cache")
         return newItem
     }
 
@@ -47,17 +54,16 @@ final class FileCache: FileCacheService {
         if let index = index {
             return todoItems.remove(at: index)
         } else {
-            DDLogWarn("Item haven't been found")
+            DDLogWarn("Item haven't been found in file cache")
             return nil
         }
     }
 
-    func saveAllItems(to filename: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        let timeout = TimeInterval.random(in: 1..<3)
+    func saveAllItems(to filename: String, completion: @escaping saveFileCacheServiceComplition) {
         do {
             let fileUrl = try self.getFileURL(of: filename)
 
-            queue.asyncAfter(deadline: .now() + timeout) {
+            queue.async {
                 assert(!Thread.isMainThread)
                 var jsonItems = [[String: Any]]()
                 for item in self.todoItems {
@@ -80,8 +86,7 @@ final class FileCache: FileCacheService {
     }
 
     func loadAllItems(from filename: String, completion: @escaping (Result<[TodoItem], Error>) -> Void) {
-        let timeout = TimeInterval.random(in: 1..<3)
-        queue.asyncAfter(deadline: .now() + timeout, flags: .barrier) {
+        queue.async(flags: .barrier) {
             assert(!Thread.isMainThread)
             do {
                 let fileUrl = try self.getFileURL(of: filename)

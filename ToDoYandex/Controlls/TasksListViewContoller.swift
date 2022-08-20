@@ -388,13 +388,22 @@ protocol TasksListViewContollerDelegate: AnyObject {
     func update(item: TodoItem)
     func delete(item: TodoItem)
     func makeCompleted(item: TodoItem)
+    func add(item: TodoItem)
 }
 
 extension TasksListViewContoller: TasksListViewContollerDelegate {
     func update(item: TodoItem) {
-        toDoItemService.addNew(item: item)
+        toDoItemService.fileCache.addNew(item)
+        toDoItemService.networkService.editTodoItem(item) { _ in
+            //
+        }
         toDoItemService.save()
 
+    }
+
+    func add(item: TodoItem) {
+        toDoItemService.addNew(item: item)
+        toDoItemService.save()
     }
 
     func delete(item: TodoItem) {

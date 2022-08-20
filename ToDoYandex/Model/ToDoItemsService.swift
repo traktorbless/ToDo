@@ -1,12 +1,19 @@
 import Foundation
 import CocoaLumberjack
 
+protocol ItemsService {
+    func load()
+    func save()
+    func add()
+    func remove()
+}
+
 class ToDoItemsService {
     private enum Constants {
-        static let queueName = "ToDoItemServiceQueue"
+        static let queueName = "com.ToDoItemServiceQueue"
     }
 
-    private(set) var todoItems: [TodoItem] {
+    private var _todoItems: [TodoItem] {
         didSet {
             DispatchQueue.main.async {
                 self.delegate?.updateView()
@@ -14,29 +21,42 @@ class ToDoItemsService {
         }
     }
 
-    let networkService: NetworkService
+    var todoItems: [TodoItem] {
+        get {
+            queue.sync { [weak self] in
+                return self?._todoItems ?? [TodoItem]()
+            }
+        }
+        set {
+            queue.async(flags: .barrier) { [weak self] in
+                self?._todoItems = newValue
+            }
+        }
+    }
+
+    let networkService: NetworkingService
     let filename: String
     let fileCache: FileCacheService
     private let queue: DispatchQueue
     weak var delegate: ToDoItemsServiceDelegate?
 
     init(filename: String) {
-        self.todoItems = []
-        self.queue = DispatchQueue(label: Constants.queueName, qos: .utility, attributes: .concurrent)
-        self.fileCache = FileCache(queue: queue)
-        self.networkService = Network(queue: queue)
+        self._todoItems = []
+        self.queue = DispatchQueue(label: Constants.queueName, attributes: .concurrent)
+        self.fileCache = FileCache()
+        self.networkService = Network()
         self.filename = filename
     }
 
     func addNew(item: TodoItem) {
-        fileCache.addNew(item)
         add(newItem: item)
-        networkService.editTodoItem(item) { result in
+        fileCache.addNew(item)
+        networkService.add(item: item) { result in
             switch result {
-            case .success(let addedItem):
-                DDLogInfo("Item with ID: \(addedItem.id) has been added to the server")
+            case .success(let returnItem):
+                print(returnItem)
             case .failure(let error):
-                DDLogWarn(error)
+                print(error)
             }
         }
     }
@@ -55,24 +75,32 @@ class ToDoItemsService {
     }
 
     func load() {
-        self.fileCache.loadAllItems(from: filename) { result in
+        self.fileCache.loadAllItems(from: filename) {[weak self] result in
             switch result {
             case .success(let newItems):
-                self.todoItems.append(contentsOf: newItems)
+                self?.todoItems = newItems
                 DDLogInfo("Загрузка данных из кэша прошла успешно")
             case .failure(let error):
                 DDLogWarn(error)
             }
         }
 
-        self.networkService.getAllTodoItems { result in
+        self.networkService.getAllTodoItems {[weak self] result in
             switch result {
-            case .success(let networkItems):
-                for item in networkItems {
-                    self.add(newItem: item)
-                }
+            case .success(let newItems):
+                self?.todoItems = newItems.map { TodoItem(networkItem: $0) }
+                print("Succes")
+            case .failure:
+                print("error")
+            }
+        }
+
+        self.networkService.updateTodoItems(items: self.todoItems) {[weak self] result in
+            switch result {
+            case .success(let items):
+                self?.todoItems = items.map { TodoItem(networkItem: $0) }
             case .failure(let error):
-                DDLogWarn(error)
+                print(error)
             }
         }
     }

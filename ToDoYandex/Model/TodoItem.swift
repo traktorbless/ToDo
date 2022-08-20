@@ -5,7 +5,7 @@ struct TodoItem: Identifiable {
     let text: String
     let priority: Priority
     let deadline: Date?
-    var isCompleted: Bool
+    let isCompleted: Bool
     let dateOfCreation: Date
     let dateOfChange: Date?
 
@@ -22,6 +22,34 @@ struct TodoItem: Identifiable {
         self.isCompleted = isCompleted
         self.dateOfCreation = dateOfCreation
         self.dateOfChange = dateOfChange
+    }
+
+    init(networkItem: TodoItemNetworking) {
+        self.id = networkItem.id
+        self.text = networkItem.text
+        self.isCompleted = networkItem.isCompleted
+        self.dateOfCreation = Date(timeIntervalSince1970: Double(networkItem.dateOfCreation))
+
+        switch networkItem.priority {
+        case "low":
+            self.priority = .unimportant
+        case "important":
+            self.priority = .important
+        default:
+            self.priority = .common
+        }
+
+        if let deadline = networkItem.deadline {
+            self.deadline = Date(timeIntervalSince1970: Double(deadline))
+        } else {
+            self.deadline = nil
+        }
+
+        if let dateOfChange = networkItem.dateOfChange {
+            self.dateOfChange = Date(timeIntervalSince1970: Double(dateOfChange))
+        } else {
+            self.dateOfChange = nil
+        }
     }
 
     enum Priority: String {
@@ -41,18 +69,6 @@ struct TodoItem: Identifiable {
             dateOfChange: Date()
         )
     }
-
-//    func makeCompleted() -> TodoItem {
-//        TodoItem(
-//            id: id,
-//            text: text,
-//            priority: priority,
-//            deadline: deadline,
-//            isCompleted: true,
-//            dateOfCreation: dateOfCreation,
-//            dateOfChange: Date()
-//        )
-//    }
 }
 
 // MARK: Парсинг JSON и его создание из структуры

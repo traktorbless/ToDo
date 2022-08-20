@@ -196,7 +196,7 @@ extension TaskViewController {
                                 isCompleted: todoItem?.isCompleted ?? false,
                                 dateOfCreation: dateOfCreation ?? Date.now,
                                 dateOfChange: Date.now)
-        delegate?.update(item: todoItem)
+        self.todoItem == nil ? delegate?.add(item: todoItem) : delegate?.update(item: todoItem)
         self.dismiss(animated: true)
     }
 
