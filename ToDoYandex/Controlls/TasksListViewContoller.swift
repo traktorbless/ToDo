@@ -2,7 +2,6 @@ import UIKit
 import CocoaLumberjack
 
 class TasksListViewContoller: UIViewController {
-
     private enum Constants {
         static let gap: CGFloat = 16
         static let sizeOfAddButton: CGFloat = 54
@@ -189,7 +188,15 @@ extension TasksListViewContoller {
 // MARK: Первоначальный настройки
 extension TasksListViewContoller {
     private func loadItems() {
-        toDoItemService.load()
+        toDoItemService.load { [weak self] result in
+            switch result {
+            case .success:
+                DDLogInfo("Загрузка прошла успешно")
+            case .failure(let error):
+                DDLogWarn("Во время загрузки произошла ошибка: \(error)")
+            }
+            self?.save()
+        }
     }
 
     private func setupViewSettings() {
@@ -392,29 +399,63 @@ protocol TasksListViewContollerDelegate: AnyObject {
 }
 
 extension TasksListViewContoller: TasksListViewContollerDelegate {
-    func update(item: TodoItem) {
-        toDoItemService.fileCache.addNew(item)
-        toDoItemService.networkService.editTodoItem(item) { _ in
-            //
+    private func save() {
+        self.toDoItemService.save { result in
+            switch result {
+            case .success:
+                DDLogInfo("Локально сохранение прошло успешно")
+            case .failure(let error):
+                DDLogWarn("При локальной сохранении произошла ошибка: \(error)")
+            }
         }
-        toDoItemService.save()
-
+    }
+    func update(item: TodoItem) {
+        toDoItemService.editItem(item: item) { [weak self] result in
+            switch result {
+            case .success(let changedItem):
+                DDLogInfo("Задача с ID: \(changedItem.id) была изменена")
+            case .failure(let error):
+                DDLogWarn("При попытке изменить задачу с ID: \(item.id) произошла ошибка: \(error)")
+            }
+            self?.save()
+        }
     }
 
     func add(item: TodoItem) {
-        toDoItemService.addNew(item: item)
-        toDoItemService.save()
+        toDoItemService.addNew(item: item) { [weak self] result in
+            switch result {
+            case .success(let addedItem):
+                DDLogInfo("Задача с ID: \(addedItem.id) была добавлена")
+            case .failure(let error):
+                DDLogWarn("При попытке добавить задачу с ID: \(item.id) произошла ошибка: \(error)")
+            }
+            self?.save()
+        }
     }
 
     func delete(item: TodoItem) {
-        toDoItemService.remove(item: item)
-        toDoItemService.save()
+        toDoItemService.remove(item: item) { [weak self] result in
+            switch result {
+            case .success(let deletedID):
+                DDLogInfo("Задача с ID: \(deletedID.id) была удалена")
+            case .failure(let error):
+                DDLogWarn("При попытке удалить задачу с ID:\(item.id) произошла ошибка :\(error)")
+            }
+            self?.save()
+        }
     }
 
     func makeCompleted(item: TodoItem) {
         let newItem = item.asCompleted
-        toDoItemService.addNew(item: newItem)
-        toDoItemService.save()
+        toDoItemService.editItem(item: newItem) { [weak self] result in
+            switch result {
+            case .success(let completedItem):
+                DDLogInfo("Задача с ID: \(completedItem.id) была помечена как выполенная")
+            case .failure(let error):
+                DDLogWarn("При попытке пометить выполенной задачу с ID:\(item.id) произошла ошибка :\(error)")
+            }
+            self?.save()
+        }
     }
 }
 

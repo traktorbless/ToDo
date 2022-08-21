@@ -41,17 +41,24 @@ class Network: NetworkingService {
         static let url = "https://beta.mrdekk.ru/todobackend/list"
         static let queueName = "com.NetworkServiceQueue"
         static let bearerCode = "GuideToSimpleFestivals"
+        static let revisionKeyForUserDefaults = "revision"
     }
 
     var revision: Int?
 
-    let queue: DispatchQueue
+    private let queue: DispatchQueue
 
     init() {
-        self.queue = DispatchQueue(label: Constants.queueName)
+        queue = DispatchQueue(label: Constants.queueName)
+        revision = UserDefaults.standard.value(forKey: Constants.revisionKeyForUserDefaults) as? Int
     }
 
     func add(item: TodoItem, completion: @escaping todoItemNetworkServiceComplition) {
+        guard let revision = revision else {
+            completion(.failure(NetwrokError.unsynchronizedData))
+            return
+        }
+
         guard let url = URL(string: Constants.url) else {
             completion(.failure(NetwrokError.invalidURL))
             return
@@ -59,7 +66,7 @@ class Network: NetworkingService {
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "POST"
         urlRequest.allHTTPHeaderFields = ["Authorization": "Bearer \(Constants.bearerCode)",
-                                          "X-Last-Known-Revision": "\(self.revision!)",
+                                          "X-Last-Known-Revision": "\(revision)",
                                           "Content-Type": "application/json"]
         let responseAdd = RequestAddOrUpdateItem(element: TodoItemNetworking(item: item))
 
@@ -85,7 +92,6 @@ class Network: NetworkingService {
                         let item = response.element
                         self?.revision = response.revision
                         completion(.success(item))
-                        DDLogInfo("Предмет с ID:\(item.id) был успешно добавлен")
                     } catch {
                         completion(.failure(error))
                     }
@@ -118,7 +124,6 @@ class Network: NetworkingService {
                         let item = response.element
                         self?.revision = response.revision
                         completion(.success(item))
-                        DDLogInfo("Предмет с ID: \(id) был успешно получен с сервера")
                     } catch {
                         completion(.failure(error))
                     }
@@ -129,6 +134,10 @@ class Network: NetworkingService {
     }
 
     func updateTodoItems(items: [TodoItem], completion: @escaping todoItemsNetworkServiceComplition) {
+        guard let revision = revision else {
+            completion(.failure(NetwrokError.unsynchronizedData))
+            return
+        }
         guard let url = URL(string: Constants.url) else {
             completion(.failure(NetwrokError.invalidURL))
             return
@@ -137,7 +146,7 @@ class Network: NetworkingService {
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "PATCH"
         urlRequest.allHTTPHeaderFields = ["Authorization": "Bearer \(Constants.bearerCode)",
-                                          "X-Last-Known-Revision": "\(self.revision!)",
+                                          "X-Last-Known-Revision": "\(revision)",
                                           "Content-Type": "application/json"]
         let updatePatch = ResponseUpdatePatch(list: items.map { TodoItemNetworking(item: $0) })
 
@@ -163,7 +172,6 @@ class Network: NetworkingService {
                         let items = response.list
                         self?.revision = response.revision
                         completion(.success(items))
-                        DDLogInfo("Синхронизация с сервером прошла успешно")
                     } catch {
                         completion(.failure(error))
                     }
@@ -209,6 +217,11 @@ class Network: NetworkingService {
     }
 
     func editTodoItem(_ item: TodoItem, completion: @escaping todoItemNetworkServiceComplition) {
+        guard let revision = revision else {
+            completion(.failure(NetwrokError.unsynchronizedData))
+            return
+        }
+
         guard let url = URL(string: Constants.url.appending("/\(item.id)")) else {
             completion(.failure(NetwrokError.invalidURL))
             return
@@ -216,7 +229,7 @@ class Network: NetworkingService {
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "PUT"
         urlRequest.allHTTPHeaderFields = ["Authorization": "Bearer \(Constants.bearerCode)",
-                                          "X-Last-Known-Revision": "\(self.revision!)",
+                                          "X-Last-Known-Revision": "\(revision)",
                                           "Content-Type": "application/json"]
         let responseAdd = RequestAddOrUpdateItem(element: TodoItemNetworking(item: item))
 
@@ -251,6 +264,11 @@ class Network: NetworkingService {
     }
 
     func remove(item: TodoItem, completion: @escaping todoItemNetworkServiceComplition) {
+        guard let revision = revision else {
+            completion(.failure(NetwrokError.unsynchronizedData))
+            return
+        }
+
         guard let url = URL(string: Constants.url.appending("/\(item.id)")) else {
             completion(.failure(NetwrokError.invalidURL))
             return
@@ -258,7 +276,7 @@ class Network: NetworkingService {
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "DELETE"
         urlRequest.allHTTPHeaderFields = ["Authorization": "Bearer \(Constants.bearerCode)",
-                                          "X-Last-Known-Revision": "\(self.revision!)",
+                                          "X-Last-Known-Revision": "\(revision)",
                                           "Content-Type": "application/json"]
         queue.async {
             let task = URLSession.shared.dataTask(with: urlRequest) {[weak self] data, response, error in

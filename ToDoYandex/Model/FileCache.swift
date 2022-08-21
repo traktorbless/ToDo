@@ -5,19 +5,23 @@ typealias saveFileCacheServiceComplition = (Result<Void, Error>) -> Void
 typealias loadFileCacheServiceComplition = (Result<[TodoItem], Error>) -> Void
 
 protocol FileCacheService {
-  func saveAllItems(
+    func saveAllItems(
     to filename: String,
     completion: @escaping saveFileCacheServiceComplition
-  )
+    )
 
-  func loadAllItems(
+    func loadAllItems(
     from filename: String,
     completion: @escaping loadFileCacheServiceComplition
-  )
+    )
 
-  @discardableResult func addNew(_ newItem: TodoItem) -> TodoItem?
+    @discardableResult func addNew(_ newItem: TodoItem) -> TodoItem?
 
-  @discardableResult func remove(_ item: TodoItem) -> TodoItem?
+    @discardableResult func remove(_ item: TodoItem) -> TodoItem?
+
+    @discardableResult func edit(_ item: TodoItem) -> TodoItem?
+
+    func updateItems(_ newItems: [TodoItem])
 }
 
 final class FileCache: FileCacheService {
@@ -31,22 +35,15 @@ final class FileCache: FileCacheService {
 
     init() {
         todoItems = [TodoItem]()
-        self.queue = DispatchQueue(label: Constants.queueName, attributes: .concurrent)
+        queue = DispatchQueue(label: Constants.queueName, qos: .utility)
     }
 
     @discardableResult func addNew(_ newItem: TodoItem) -> TodoItem? {
-        guard let index = todoItems.firstIndex(of: newItem) else {
+        guard let _ = todoItems.firstIndex(of: newItem) else {
             todoItems.append(newItem)
-            DDLogInfo("Task with ID: \(newItem.id) have been added")
             return newItem
         }
-        let newItemDateOfChange = newItem.dateOfChange ?? newItem.dateOfCreation
-        let itemDateOfChange = todoItems[index].dateOfChange ?? todoItems[index].dateOfCreation
-        if itemDateOfChange < newItemDateOfChange {
-            todoItems[index] = newItem
-        }
-        DDLogInfo("Task with ID: \(newItem.id) have been changed in file cache")
-        return newItem
+        return nil
     }
 
     @discardableResult func remove(_ item: TodoItem) -> TodoItem? {
@@ -54,23 +51,38 @@ final class FileCache: FileCacheService {
         if let index = index {
             return todoItems.remove(at: index)
         } else {
-            DDLogWarn("Item haven't been found in file cache")
             return nil
         }
+    }
+
+    @discardableResult func edit(_ item: TodoItem) -> TodoItem? {
+        guard let itemIndex = todoItems.firstIndex(of: item) else { return nil }
+        let newItemDateOfChange = item.dateOfChange ?? item.dateOfCreation
+        let itemDateOfChange = todoItems[itemIndex].dateOfChange ?? todoItems[itemIndex].dateOfCreation
+        if itemDateOfChange < newItemDateOfChange {
+            todoItems[itemIndex] = item
+        }
+        return todoItems[itemIndex]
     }
 
     func saveAllItems(to filename: String, completion: @escaping saveFileCacheServiceComplition) {
         do {
             let fileUrl = try self.getFileURL(of: filename)
 
-            queue.async {
+            queue.async { [weak self] in
+                guard let service = self else {
+                    completion(.failure(FileCacheErrors.cannotFindSystemDirectory))
+                    return
+                }
                 assert(!Thread.isMainThread)
                 var jsonItems = [[String: Any]]()
-                for item in self.todoItems {
+                for item in service.todoItems {
                     if let json = item.json as? [String: Any] {
                         jsonItems.append(json)
                     }
                 }
+                print(jsonItems.count)
+
                 do {
                     assert(!Thread.isMainThread)
                     let data = try JSONSerialization.data(withJSONObject: jsonItems, options: [])
@@ -86,28 +98,30 @@ final class FileCache: FileCacheService {
     }
 
     func loadAllItems(from filename: String, completion: @escaping (Result<[TodoItem], Error>) -> Void) {
-        queue.async(flags: .barrier) {
+        queue.async { [weak self] in
             assert(!Thread.isMainThread)
             do {
-                let fileUrl = try self.getFileURL(of: filename)
+                guard let fileUrl = try self?.getFileURL(of: filename) else {
+                    completion(.failure(FileCacheErrors.cannotFindSystemDirectory))
+                    return
+                }
                 let data = try Data(contentsOf: fileUrl)
 
                 guard let getJson = try JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
                     throw FileCacheErrors.unparsableData
                 }
 
-                var todoItems = [TodoItem]()
-                for item in getJson {
-                    if let todoItem = TodoItem.parse(json: item) {
-                        todoItems.append(todoItem)
-                    }
-                }
-                self.todoItems = todoItems
+                let todoItems = getJson.compactMap { TodoItem.parse(json: $0) }
+                self?.todoItems = todoItems
                 completion(.success(todoItems))
             } catch {
                 completion(.failure(error))
             }
         }
+    }
+
+    func updateItems(_ newItems: [TodoItem]) {
+        self.todoItems = newItems
     }
 
     private func getFileURL(of filename: String) throws -> URL {
@@ -122,4 +136,5 @@ final class FileCache: FileCacheService {
 enum FileCacheErrors: Error {
     case cannotFindSystemDirectory
     case unparsableData
+    case serializationError
 }
