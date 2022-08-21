@@ -81,7 +81,6 @@ final class FileCache: FileCacheService {
                         jsonItems.append(json)
                     }
                 }
-                print(jsonItems.count)
 
                 do {
                     assert(!Thread.isMainThread)

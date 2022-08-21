@@ -131,31 +131,16 @@ class ToDoItemsService: ItemsService {
 
     func remove(item: TodoItem, complition: @escaping todoItemServiceComplition) {
         if isDirty {
-            self.networkService.getAllTodoItems { [weak self] result in
+            self.synchronize { [weak self] result in
                 guard let service = self else { return }
                 switch result {
-                case .success:
-                    service.networkService.updateTodoItems(items: service.todoItems) {[weak self] result in
-                        guard let service = self else { return }
-                        switch result {
-                        case .success(let items):
-                            service.todoItems = items.map { TodoItem(networkItem: $0) }
-                            service.fileCache.updateItems(service.todoItems)
-                            service.isDirty = false
-                        case .failure(let error):
-                            service.isDirty = true
-                            service.delete(item: item)
-                            service.fileCache.addNew(item)
-                            complition(.failure(error))
-                            return
-                        }
-                    }
+                case .success(let networkItems):
+                    service.todoItems = networkItems.map { TodoItem(networkItem: $0) }
+                    service.fileCache.updateItems(service.todoItems)
                 case .failure(let error):
-                    service.isDirty = true
-                    service.add(newItem: item)
-                    service.fileCache.addNew(item)
+                    self?.delete(item: item)
+                    self?.fileCache.remove(item)
                     complition(.failure(error))
-                    return
                 }
             }
         }
@@ -188,29 +173,35 @@ class ToDoItemsService: ItemsService {
             }
         }
 
-        self.networkService.getAllTodoItems { [weak self] result in
-            guard let service = self else { return }
-            switch result {
-            case .success(let networkingItems):
-                if service.isFirstLaunch {
+        if isFirstLaunch {
+            self.networkService.getAllTodoItems { [weak self] result in
+                guard let service = self else { return }
+                switch result {
+                case .success(let networkingItems):
                     service.todoItems = networkingItems.compactMap { TodoItem(networkItem: $0) }
-                    return
+                    service.fileCache.updateItems(service.todoItems)
+                    complition(.success(()))
+                case .failure(let error):
+                    service.isDirty = true
+                    complition(.failure(error))
                 }
+            }
+            return
+        }
 
-                service.networkService.updateTodoItems(items: service.todoItems) {[weak self] result in
-                    switch result {
-                    case .success(let items):
-                        self?.todoItems = items.map { TodoItem(networkItem: $0) }
-                    case .failure(let error):
-                        self?.isDirty = true
-                        complition(.failure(error))
-                    }
-                }
+        networkService.updateTodoItems(items: self.todoItems) { [weak self] result in
+            switch result {
+            case .success(let networkItems):
+                let items = networkItems.map { TodoItem(networkItem: $0) }
+                self?.todoItems = items
+                self?.fileCache.updateItems(items)
+                complition(.success(()))
             case .failure(let error):
                 self?.isDirty = true
                 complition(.failure(error))
             }
         }
+
     }
 
     func save(complition: @escaping resultServiceComplition) {
@@ -241,23 +232,13 @@ class ToDoItemsService: ItemsService {
     }
 
     private func synchronize(complition: @escaping todoItemsNetworkServiceComplition) {
-        self.networkService.getAllTodoItems { [weak self] result in
-            guard let service = self else { return }
+        self.networkService.updateTodoItems(items: self.todoItems) { [weak self] result in
             switch result {
-            case .success:
-                service.networkService.updateTodoItems(items: service.todoItems) {[weak self] result in
-                    switch result {
-                    case .success(let items):
-                        complition(.success(items))
-                        self?.isDirty = false
-                    case .failure(let error):
-                        self?.isDirty = true
-                        complition(.failure(error))
-                        return
-                    }
-                }
+            case .success(let items):
+                complition(.success(items))
+                self?.isDirty = false
             case .failure(let error):
-                service.isDirty = true
+                self?.isDirty = true
                 complition(.failure(error))
                 return
             }

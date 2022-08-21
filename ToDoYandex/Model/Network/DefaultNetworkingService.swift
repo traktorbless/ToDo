@@ -46,6 +46,20 @@ class Network: NetworkingService {
 
     var revision: Int?
 
+    private var postHeader: [String: String]? {
+        guard let revision = revision else {
+            return nil
+        }
+
+        return ["Authorization": "Bearer \(Constants.bearerCode)",
+         "X-Last-Known-Revision": "\(revision)",
+        "Content-Type": "application/json"]
+    }
+
+    private lazy var getHeader: [String: String] = {
+        return ["Authorization": "Bearer \(Constants.bearerCode)"]
+    }()
+
     private let queue: DispatchQueue
 
     init() {
@@ -54,7 +68,7 @@ class Network: NetworkingService {
     }
 
     func add(item: TodoItem, completion: @escaping todoItemNetworkServiceComplition) {
-        guard let revision = revision else {
+        guard let postHeader = postHeader else {
             completion(.failure(NetwrokError.unsynchronizedData))
             return
         }
@@ -65,9 +79,7 @@ class Network: NetworkingService {
         }
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "POST"
-        urlRequest.allHTTPHeaderFields = ["Authorization": "Bearer \(Constants.bearerCode)",
-                                          "X-Last-Known-Revision": "\(revision)",
-                                          "Content-Type": "application/json"]
+        urlRequest.allHTTPHeaderFields = postHeader
         let responseAdd = RequestAddOrUpdateItem(element: TodoItemNetworking(item: item))
 
         do {
@@ -108,7 +120,7 @@ class Network: NetworkingService {
         }
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "GET"
-        urlRequest.allHTTPHeaderFields = ["Authorization": "Bearer \(Constants.bearerCode)"]
+        urlRequest.allHTTPHeaderFields = getHeader
         queue.async {
             let task = URLSession.shared.dataTask(with: urlRequest) {[weak self] data, response, error in
                 assert(!Thread.isMainThread)
@@ -134,7 +146,7 @@ class Network: NetworkingService {
     }
 
     func updateTodoItems(items: [TodoItem], completion: @escaping todoItemsNetworkServiceComplition) {
-        guard let revision = revision else {
+        guard let postHeader = postHeader else {
             completion(.failure(NetwrokError.unsynchronizedData))
             return
         }
@@ -145,9 +157,7 @@ class Network: NetworkingService {
 
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "PATCH"
-        urlRequest.allHTTPHeaderFields = ["Authorization": "Bearer \(Constants.bearerCode)",
-                                          "X-Last-Known-Revision": "\(revision)",
-                                          "Content-Type": "application/json"]
+        urlRequest.allHTTPHeaderFields = postHeader
         let updatePatch = ResponseUpdatePatch(list: items.map { TodoItemNetworking(item: $0) })
 
         do {
@@ -190,7 +200,7 @@ class Network: NetworkingService {
 
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "GET"
-        urlRequest.allHTTPHeaderFields = ["Authorization": "Bearer \(Constants.bearerCode)"]
+        urlRequest.allHTTPHeaderFields = getHeader
 
         queue.async {
             let task = URLSession.shared.dataTask(with: urlRequest) {[weak self] data, response, error in
@@ -217,7 +227,7 @@ class Network: NetworkingService {
     }
 
     func editTodoItem(_ item: TodoItem, completion: @escaping todoItemNetworkServiceComplition) {
-        guard let revision = revision else {
+        guard let postHeader = postHeader else {
             completion(.failure(NetwrokError.unsynchronizedData))
             return
         }
@@ -228,9 +238,7 @@ class Network: NetworkingService {
         }
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "PUT"
-        urlRequest.allHTTPHeaderFields = ["Authorization": "Bearer \(Constants.bearerCode)",
-                                          "X-Last-Known-Revision": "\(revision)",
-                                          "Content-Type": "application/json"]
+        urlRequest.allHTTPHeaderFields = postHeader
         let responseAdd = RequestAddOrUpdateItem(element: TodoItemNetworking(item: item))
 
         do {
@@ -264,7 +272,7 @@ class Network: NetworkingService {
     }
 
     func remove(item: TodoItem, completion: @escaping todoItemNetworkServiceComplition) {
-        guard let revision = revision else {
+        guard let postHeader = postHeader else {
             completion(.failure(NetwrokError.unsynchronizedData))
             return
         }
@@ -275,9 +283,7 @@ class Network: NetworkingService {
         }
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "DELETE"
-        urlRequest.allHTTPHeaderFields = ["Authorization": "Bearer \(Constants.bearerCode)",
-                                          "X-Last-Known-Revision": "\(revision)",
-                                          "Content-Type": "application/json"]
+        urlRequest.allHTTPHeaderFields = postHeader
         queue.async {
             let task = URLSession.shared.dataTask(with: urlRequest) {[weak self] data, response, error in
                 assert(!Thread.isMainThread)
