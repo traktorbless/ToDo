@@ -344,8 +344,8 @@ extension TasksListViewContoller: UITableViewDelegate {
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         guard indexPath.row < tasks.count else { return nil }
         let item = tasks[indexPath.row]
-        let deleteAction = UIContextualAction(style: .destructive, title: nil) {_, _, _ in
-            self.delete(item: item)
+        let deleteAction = UIContextualAction(style: .destructive, title: nil) {[weak self] _, _, _ in
+            self?.delete(item: item)
         }
         deleteAction.image = UIImage(systemName: "trash.fill")
         deleteAction.backgroundColor = .redApp
@@ -466,8 +466,8 @@ extension TasksListViewContoller: TasksListViewContollerDelegate {
         self.numberOfCompleteTaskLabel.text = "Выполнено - \(self.numberOfCompletedTask)"
         self.tableView.reloadData()
         self.tableView.layoutIfNeeded()
-        DispatchQueue.main.async {
-            self.view.setNeedsLayout()
+        DispatchQueue.main.async { [weak self] in
+            self?.view.setNeedsLayout()
         }
     }
  }

@@ -1,12 +1,15 @@
 import Foundation
 import CocoaLumberjack
 
+typealias todoItemServiceComplition = (Result<TodoItem, Error>) -> Void
+typealias resultServiceComplition = (Result<Void, Error>) -> Void
+
 protocol ItemsService {
-    func load(complition: @escaping (Result<Void, Error>) -> Void)
-    func save(complition: @escaping (Result<Void, Error>) -> Void)
-    func addNew(item: TodoItem, complition: @escaping (Result<TodoItem, Error>) -> Void)
-    func remove(item: TodoItem, complition: @escaping (Result<TodoItem, Error>) -> Void)
-    func editItem(item: TodoItem, complition: @escaping (Result<TodoItem, Error>) -> Void)
+    func load(complition: @escaping resultServiceComplition)
+    func save(complition: @escaping resultServiceComplition)
+    func addNew(item: TodoItem, complition: @escaping todoItemServiceComplition)
+    func remove(item: TodoItem, complition: @escaping todoItemServiceComplition)
+    func editItem(item: TodoItem, complition: @escaping todoItemServiceComplition)
 }
 
 class ToDoItemsService: ItemsService {
@@ -14,14 +17,6 @@ class ToDoItemsService: ItemsService {
     private enum Constants {
         static let queueName = "com.ToDoItemServiceQueue"
         static let firstLaunchKey = "firstLaunch"
-    }
-
-    private var _todoItems: [TodoItem] {
-        didSet {
-            DispatchQueue.main.async {
-                self.delegate?.updateView()
-            }
-        }
     }
 
     var todoItems: [TodoItem] {
@@ -37,7 +32,15 @@ class ToDoItemsService: ItemsService {
         }
     }
 
-    var isFirstLaunch: Bool {
+    private var _todoItems: [TodoItem] {
+        didSet {
+            DispatchQueue.main.async {
+                self.delegate?.updateView()
+            }
+        }
+    }
+
+    private var isFirstLaunch: Bool {
         if UserDefaults.standard.bool(forKey: Constants.firstLaunchKey) {
             return false
         } else {
@@ -46,10 +49,9 @@ class ToDoItemsService: ItemsService {
         }
     }
 
-    var isDirty = false
-
+    private var isDirty = false
     private let networkService: NetworkingService
-    let filename: String
+    private let filename: String
     private let fileCache: FileCacheService
     private let queue: DispatchQueue
     weak var delegate: ToDoItemsServiceDelegate?
@@ -62,7 +64,7 @@ class ToDoItemsService: ItemsService {
         self.filename = filename
     }
 
-    func editItem(item: TodoItem, complition: @escaping (Result<TodoItem, Error>) -> Void) {
+    func editItem(item: TodoItem, complition: @escaping todoItemServiceComplition) {
         if isDirty {
             self.synchronize { [weak self] result in
                 guard let service = self else { return }
@@ -95,7 +97,7 @@ class ToDoItemsService: ItemsService {
         }
     }
 
-    func addNew(item: TodoItem, complition: @escaping (Result<TodoItem, Error>) -> Void) {
+    func addNew(item: TodoItem, complition: @escaping todoItemServiceComplition) {
         if isDirty {
             self.synchronize { [weak self] result in
                 guard let service = self else { return }
@@ -127,7 +129,7 @@ class ToDoItemsService: ItemsService {
         }
     }
 
-    func remove(item: TodoItem, complition: @escaping (Result<TodoItem, Error>) -> Void) {
+    func remove(item: TodoItem, complition: @escaping todoItemServiceComplition) {
         if isDirty {
             self.networkService.getAllTodoItems { [weak self] result in
                 guard let service = self else { return }
@@ -174,7 +176,7 @@ class ToDoItemsService: ItemsService {
         }
     }
 
-    func load(complition: @escaping (Result<Void, Error>) -> Void) {
+    func load(complition: @escaping resultServiceComplition) {
         self.fileCache.loadAllItems(from: filename) {[weak self] result in
             switch result {
             case .success(let newItems):
@@ -211,7 +213,7 @@ class ToDoItemsService: ItemsService {
         }
     }
 
-    func save(complition: @escaping (Result<Void, Error>) -> Void) {
+    func save(complition: @escaping resultServiceComplition) {
         fileCache.saveAllItems(to: filename) { result in
             switch result {
             case .success:
@@ -238,7 +240,7 @@ class ToDoItemsService: ItemsService {
         }
     }
 
-    private func synchronize(complition: @escaping (Result<[TodoItemNetworking], Error>) -> Void) {
+    private func synchronize(complition: @escaping todoItemsNetworkServiceComplition) {
         self.networkService.getAllTodoItems { [weak self] result in
             guard let service = self else { return }
             switch result {
