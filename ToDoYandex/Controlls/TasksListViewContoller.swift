@@ -117,6 +117,9 @@ class TasksListViewContoller: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         setupFrames()
+        DispatchQueue.main.async {
+            self.view.setNeedsLayout() // Вынужденный костыль, иначе криво высчитывается высота контента
+        }
     }
 
     override func viewDidLayoutSubviews() {
@@ -224,6 +227,8 @@ extension TasksListViewContoller {
         scrollView.contentSize = .init(width: view.bounds.width,
                                        height: height + numberOfCompleteTaskLabel.bounds.height + view.safeAreaInsets.bottom)
         tableViewHeightConstraint.constant = height
+        print(height)
+        print(self.tableView.intrinsicContentSize.height)
     }
 }
 
