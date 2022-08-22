@@ -146,10 +146,6 @@ class Network: NetworkingService {
     }
 
     func updateTodoItems(items: [TodoItem], completion: @escaping todoItemsNetworkServiceComplition) {
-        guard let postHeader = postHeader else {
-            completion(.failure(NetwrokError.unsynchronizedData))
-            return
-        }
         guard let url = URL(string: Constants.url) else {
             completion(.failure(NetwrokError.invalidURL))
             return
@@ -157,7 +153,9 @@ class Network: NetworkingService {
 
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "PATCH"
-        urlRequest.allHTTPHeaderFields = postHeader
+        urlRequest.allHTTPHeaderFields = ["Authorization": "Bearer \(Constants.bearerCode)",
+                                          "X-Last-Known-Revision": "0",
+                                         "Content-Type": "application/json"]
         let updatePatch = ResponseUpdatePatch(list: items.map { TodoItemNetworking(item: $0) })
 
         do {
