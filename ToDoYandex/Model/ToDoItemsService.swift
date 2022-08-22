@@ -72,13 +72,27 @@ class ToDoItemsService: ItemsService {
                 case .success(let networkItems):
                     service.todoItems = networkItems.map { TodoItem(networkItem: $0) }
                     service.fileCache.updateItems(service.todoItems)
+                    self?.networkService.editTodoItem(item) { [weak self] result in
+                        switch result {
+                        case .success(let networkItem):
+                            let item = TodoItem(networkItem: networkItem)
+                            self?.edit(item: item)
+                            self?.fileCache.edit(item)
+                            complition(.success(item))
+                        case .failure(let error):
+                            self?.edit(item: item)
+                            self?.fileCache.edit(item)
+                            self?.isDirty = true
+                            complition(.failure(error))
+                        }
+                    }
                 case .failure(let error):
                     service.edit(item: item)
                     service.fileCache.edit(item)
                     complition(.failure(error))
-                    return
                 }
             }
+            return
         }
 
         networkService.editTodoItem(item) { [weak self] result in
@@ -105,13 +119,26 @@ class ToDoItemsService: ItemsService {
                 case .success(let networkItems):
                     service.todoItems = networkItems.map { TodoItem(networkItem: $0) }
                     service.fileCache.updateItems(service.todoItems)
+                    self?.networkService.add(item: item) { [weak self] result in
+                        switch result {
+                        case .success(let returnItem):
+                            self?.add(newItem: TodoItem(networkItem: returnItem))
+                            self?.fileCache.addNew(TodoItem(networkItem: returnItem))
+                            complition(.success(TodoItem(networkItem: returnItem)))
+                        case .failure(let error):
+                            self?.add(newItem: item)
+                            self?.fileCache.addNew(item)
+                            self?.isDirty = true
+                            complition(.failure(error))
+                        }
+                    }
                 case .failure(let error):
                     service.add(newItem: item)
                     service.fileCache.addNew(item)
                     complition(.failure(error))
-                    return
                 }
             }
+            return
         }
 
         networkService.add(item: item) { [weak self] result in
@@ -137,12 +164,27 @@ class ToDoItemsService: ItemsService {
                 case .success(let networkItems):
                     service.todoItems = networkItems.map { TodoItem(networkItem: $0) }
                     service.fileCache.updateItems(service.todoItems)
+                    self?.networkService.remove(item: item) { [weak self] result in
+                        switch result {
+                        case.success(let removedItem):
+                            let item = TodoItem(networkItem: removedItem)
+                            self?.delete(item: item)
+                            self?.fileCache.remove(item)
+                            complition(.success(item))
+                        case.failure(let error):
+                            self?.delete(item: item)
+                            self?.fileCache.remove(item)
+                            self?.isDirty = true
+                            complition(.failure(error))
+                        }
+                    }
                 case .failure(let error):
                     self?.delete(item: item)
                     self?.fileCache.remove(item)
                     complition(.failure(error))
                 }
             }
+            return
         }
 
         networkService.remove(item: item) { [weak self] result in
@@ -235,8 +277,8 @@ class ToDoItemsService: ItemsService {
         self.networkService.updateTodoItems(items: self.todoItems) { [weak self] result in
             switch result {
             case .success(let items):
-                complition(.success(items))
                 self?.isDirty = false
+                complition(.success(items))
             case .failure(let error):
                 self?.isDirty = true
                 complition(.failure(error))
