@@ -20,9 +20,7 @@ class TasksListViewContoller: UIViewController {
 
     private lazy var tableViewHeightConstraint: NSLayoutConstraint = tableView.heightAnchor.constraint(equalToConstant: tableView.contentSize.height)
 
-    private var tasks: [TodoItem] {
-        isCompletedTasksHidden ? toDoItemService.todoItems.filter { !$0.isCompleted } : toDoItemService.todoItems
-    }
+    private var viewTasks: [TodoItem] = []
 
     private var numberOfCompletedTask: Int {
         toDoItemService.todoItems.reduce(into: 0) { partialResult, item in
@@ -166,6 +164,7 @@ extension TasksListViewContoller {
 extension TasksListViewContoller {
     @objc private func hideOrShowCompletedTasks(_ sender: UIButton) {
         isCompletedTasksHidden.toggle()
+        viewTasks = isCompletedTasksHidden ? toDoItemService.todoItems.filter { !$0.isCompleted } : toDoItemService.todoItems
         sender.setTitle(isCompletedTasksHidden ? "Показать" : "Скрыть", for: .normal)
         tableView.reloadData()
     }
@@ -183,7 +182,11 @@ extension TasksListViewContoller {
             return
         }
 
-        let item = tasks[imageView.tag]
+        let item = viewTasks[imageView.tag]
+        if isCompletedTasksHidden {
+            viewTasks.remove(at: imageView.tag)
+            tableView.deleteRows(at: [IndexPath(row: imageView.tag, section: 0)], with: .fade)
+        }
         makeCompleted(item: item)
     }
 }
@@ -192,13 +195,15 @@ extension TasksListViewContoller {
 extension TasksListViewContoller {
     private func loadItems() {
         toDoItemService.load { [weak self] result in
+            guard let self = self else { return }
             switch result {
             case .success:
+                self.viewTasks = self.isCompletedTasksHidden ? self.toDoItemService.todoItems.filter { !$0.isCompleted } : self.toDoItemService.todoItems
                 DDLogInfo("Загрузка прошла успешно")
             case .failure(let error):
                 DDLogWarn("Во время загрузки произошла ошибка: \(error)")
             }
-            self?.save()
+            self.save()
         }
     }
 
@@ -234,11 +239,11 @@ extension TasksListViewContoller {
 extension TasksListViewContoller: UITableViewDataSource {
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        tasks.count + 1
+        viewTasks.count + 1
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        if indexPath.row == tasks.count {
+        if indexPath.row == viewTasks.count {
             let cell = UITableViewCell(style: .default, reuseIdentifier: Constants.cellIndetifire)
             cell.textLabel?.textColor = .lightGray
             cell.textLabel?.text = "Новое"
@@ -247,7 +252,7 @@ extension TasksListViewContoller: UITableViewDataSource {
             return cell
         }
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: Constants.cellIndetifire)
-        let item = tasks[indexPath.row]
+        let item = viewTasks[indexPath.row]
         let configurationForChevron = UIImage.SymbolConfiguration(paletteColors: [.lightGray])
         cell.accessoryView = UIImageView(image: UIImage(systemName: "chevron.right", withConfiguration: configurationForChevron))
         cell.textLabel?.numberOfLines = Constants.numberOfLinesInCell
@@ -285,7 +290,7 @@ extension TasksListViewContoller: UITableViewDataSource {
         return UIContextMenuConfiguration(
             identifier: nil,
             previewProvider: { [weak self] () -> UIViewController? in
-                let item = self?.tasks[indexPath.row]
+                let item = self?.viewTasks[indexPath.row]
                 let taskViewController = TaskViewController()
                 taskViewController.todoItem = item
                 taskViewController.delegate = self
@@ -336,8 +341,8 @@ extension TasksListViewContoller: UITableViewDelegate {
         taskController.delegate = self
         let navController = UINavigationController(rootViewController: taskController)
         navController.modalPresentationStyle = .formSheet
-        if indexPath.row != tasks.count {
-            taskController.todoItem = tasks[indexPath.row]
+        if indexPath.row != viewTasks.count {
+            taskController.todoItem = viewTasks[indexPath.row]
         }
         self.present(navController, animated: true, completion: nil)
         tableView.deselectRow(at: indexPath, animated: true)
@@ -345,15 +350,17 @@ extension TasksListViewContoller: UITableViewDelegate {
 
     // MARK: Правый свайп ячейки
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        guard indexPath.row < tasks.count else { return nil }
-        let item = tasks[indexPath.row]
-        let deleteAction = UIContextualAction(style: .destructive, title: nil) {[weak self] _, _, _ in
-            self?.delete(item: item)
+        guard indexPath.row < viewTasks.count else { return nil }
+        let item = viewTasks[indexPath.row]
+        let deleteAction = UIContextualAction(style: .destructive, title: nil) {[unowned self] _, _, _ in
+            self.viewTasks.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .fade)
+            self.delete(item: item)
         }
         deleteAction.image = UIImage(systemName: "trash.fill")
         deleteAction.backgroundColor = .redApp
 
-        let getInfoAction = UIContextualAction(style: .normal, title: nil) { _, _, _ in
+        let getInfoAction = UIContextualAction(style: .normal, title: nil) {[unowned self]  _, _, _ in
             let taskViewController = TaskViewController()
             let navController = UINavigationController(rootViewController: taskViewController)
             taskViewController.todoItem = item
@@ -368,9 +375,13 @@ extension TasksListViewContoller: UITableViewDelegate {
     }
     // MARK: Левый свайп ячейки
     func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        guard indexPath.row < tasks.count else { return nil }
-        let item = tasks[indexPath.row]
-        let makeTaskCompleted = UIContextualAction(style: .normal, title: nil) { _, _, _ in
+        guard indexPath.row < viewTasks.count else { return nil }
+        let item = viewTasks[indexPath.row]
+        let makeTaskCompleted = UIContextualAction(style: .normal, title: nil) {[unowned self] _, _, _ in
+            if self.isCompletedTasksHidden {
+                self.viewTasks.remove(at: indexPath.row)
+                tableView.deleteRows(at: [indexPath], with: .fade)
+            }
             self.makeCompleted(item: item)
         }
 
@@ -466,6 +477,7 @@ extension TasksListViewContoller: TasksListViewContollerDelegate {
  extension TasksListViewContoller: ToDoItemsServiceDelegate {
     func updateView() {
         assert(Thread.isMainThread)
+        viewTasks = isCompletedTasksHidden ? toDoItemService.todoItems.filter { !$0.isCompleted } : toDoItemService.todoItems
         self.numberOfCompleteTaskLabel.text = "Выполнено - \(self.numberOfCompletedTask)"
         self.tableView.reloadData()
         self.tableView.layoutIfNeeded()
