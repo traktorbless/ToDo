@@ -44,7 +44,7 @@ class Network: NetworkingService {
         static let revisionKeyForUserDefaults = "revision"
     }
 
-    var revision: Int?
+    private var revision: Int?
 
     private var postHeader: [String: String]? {
         guard let revision = revision else {
@@ -89,7 +89,7 @@ class Network: NetworkingService {
             return
         }
 
-        queue.async {
+        queue.async { [weak self] in
             let task = URLSession.shared.dataTask(with: urlRequest) {[weak self] data, response, error in
                 assert(!Thread.isMainThread)
                 if let error = error {
@@ -121,7 +121,7 @@ class Network: NetworkingService {
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "GET"
         urlRequest.allHTTPHeaderFields = getHeader
-        queue.async {
+        queue.async { [weak self] in
             let task = URLSession.shared.dataTask(with: urlRequest) {[weak self] data, response, error in
                 assert(!Thread.isMainThread)
                 if let error = error {
@@ -165,7 +165,7 @@ class Network: NetworkingService {
             return
         }
 
-        queue.async {
+        queue.async { [weak self] in
             let task = URLSession.shared.dataTask(with: urlRequest) {[weak self] data, response, error in
                 assert(!Thread.isMainThread)
                 if let error = error {
@@ -200,7 +200,7 @@ class Network: NetworkingService {
         urlRequest.httpMethod = "GET"
         urlRequest.allHTTPHeaderFields = getHeader
 
-        queue.async {
+        queue.async { [weak self] in
             let task = URLSession.shared.dataTask(with: urlRequest) {[weak self] data, response, error in
                 assert(!Thread.isMainThread)
                 if let error = error {
@@ -245,7 +245,7 @@ class Network: NetworkingService {
             completion(.failure(error))
             return
         }
-        queue.async {
+        queue.async { [weak self] in
             let task = URLSession.shared.dataTask(with: urlRequest) {[weak self] data, response, error in
                 assert(!Thread.isMainThread)
                 if let error = error {
@@ -282,7 +282,7 @@ class Network: NetworkingService {
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "DELETE"
         urlRequest.allHTTPHeaderFields = postHeader
-        queue.async {
+        queue.async { [weak self] in
             let task = URLSession.shared.dataTask(with: urlRequest) {[weak self] data, response, error in
                 assert(!Thread.isMainThread)
                 if let error = error {
