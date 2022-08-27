@@ -5,11 +5,11 @@ typealias todoItemServiceComplition = (Result<TodoItem, Error>) -> Void
 typealias resultServiceComplition = (Result<Void, Error>) -> Void
 
 protocol ItemsService {
-    func load(complition: @escaping resultServiceComplition)
-    func save(complition: @escaping resultServiceComplition)
-    func addNew(item: TodoItem, complition: @escaping todoItemServiceComplition)
-    func remove(item: TodoItem, complition: @escaping todoItemServiceComplition)
-    func editItem(item: TodoItem, complition: @escaping todoItemServiceComplition)
+    func load(completion: @escaping resultServiceComplition)
+    func save(completion: @escaping resultServiceComplition)
+    func addNew(item: TodoItem, completion: @escaping todoItemServiceComplition)
+    func remove(item: TodoItem, completion: @escaping todoItemServiceComplition)
+    func editItem(item: TodoItem, completion: @escaping todoItemServiceComplition)
 }
 
 class ToDoItemsService: ItemsService {
@@ -53,6 +53,7 @@ class ToDoItemsService: ItemsService {
     private let networkService: NetworkingService
     private let filename: String
     private let fileCache: FileCacheService
+    private let coreDataController: CoreDataController
     private let queue: DispatchQueue
     weak var delegate: ToDoItemsServiceDelegate?
 
@@ -60,36 +61,21 @@ class ToDoItemsService: ItemsService {
         self._todoItems = []
         self.queue = DispatchQueue(label: Constants.queueName, attributes: .concurrent)
         self.fileCache = FileCache()
+        self.coreDataController = CoreDataController()
         self.networkService = Network()
         self.filename = filename
     }
 
-    func editItem(item: TodoItem, complition: @escaping todoItemServiceComplition) {
+    func editItem(item: TodoItem, completion: @escaping todoItemServiceComplition) {
         edit(item: item)
+        coreDataController.edit(item)
         if isDirty {
-            self.synchronize { [weak self] result in
-                guard let service = self else { return }
+            self.synchronize {result in
                 switch result {
-                case .success(let networkItems):
-                    service.todoItems = networkItems.map { TodoItem(networkItem: $0) }
-                    service.edit(item: item)
-                    service.fileCache.updateItems(service.todoItems)
-                    self?.networkService.editTodoItem(item) { [weak self] result in
-                        switch result {
-                        case .success(let networkItem):
-                            let item = TodoItem(networkItem: networkItem)
-                            self?.edit(item: item)
-                            self?.fileCache.edit(item)
-                            complition(.success(item))
-                        case .failure(let error):
-                            self?.fileCache.edit(item)
-                            self?.isDirty = true
-                            complition(.failure(error))
-                        }
-                    }
+                case .success:
+                    completion(.success(item))
                 case .failure(let error):
-                    service.fileCache.edit(item)
-                    complition(.failure(error))
+                    completion(.failure(error))
                 }
             }
             return
@@ -99,42 +85,24 @@ class ToDoItemsService: ItemsService {
             switch result {
             case .success(let networkItem):
                 let item = TodoItem(networkItem: networkItem)
-                self?.edit(item: item)
-                self?.fileCache.edit(item)
-                complition(.success(item))
+                completion(.success(item))
             case .failure(let error):
-                self?.fileCache.edit(item)
                 self?.isDirty = true
-                complition(.failure(error))
+                completion(.failure(error))
             }
         }
     }
 
-    func addNew(item: TodoItem, complition: @escaping todoItemServiceComplition) {
+    func addNew(item: TodoItem, completion: @escaping todoItemServiceComplition) {
         add(newItem: item)
+        coreDataController.add(item)
         if isDirty {
-            self.synchronize { [weak self] result in
-                guard let service = self else { return }
+            self.synchronize { result in
                 switch result {
-                case .success(let networkItems):
-                    service.todoItems = networkItems.map { TodoItem(networkItem: $0) }
-                    service.add(newItem: item)
-                    service.fileCache.updateItems(service.todoItems)
-                    self?.networkService.add(item: item) { [weak self] result in
-                        switch result {
-                        case .success(let returnItem):
-                            self?.add(newItem: TodoItem(networkItem: returnItem))
-                            self?.fileCache.addNew(TodoItem(networkItem: returnItem))
-                            complition(.success(TodoItem(networkItem: returnItem)))
-                        case .failure(let error):
-                            self?.fileCache.addNew(item)
-                            self?.isDirty = true
-                            complition(.failure(error))
-                        }
-                    }
+                case .success:
+                    completion(.success(item))
                 case .failure(let error):
-                    service.fileCache.addNew(item)
-                    complition(.failure(error))
+                    completion(.failure(error))
                 }
             }
             return
@@ -143,43 +111,24 @@ class ToDoItemsService: ItemsService {
         networkService.add(item: item) { [weak self] result in
             switch result {
             case .success(let returnItem):
-                self?.add(newItem: TodoItem(networkItem: returnItem))
-                self?.fileCache.addNew(TodoItem(networkItem: returnItem))
-                complition(.success(TodoItem(networkItem: returnItem)))
+                completion(.success(TodoItem(networkItem: returnItem)))
             case .failure(let error):
-                self?.fileCache.addNew(item)
                 self?.isDirty = true
-                complition(.failure(error))
+                completion(.failure(error))
             }
         }
     }
 
-    func remove(item: TodoItem, complition: @escaping todoItemServiceComplition) {
+    func remove(item: TodoItem, completion: @escaping todoItemServiceComplition) {
         delete(item: item)
+        coreDataController.remove(item)
         if isDirty {
-            self.synchronize { [weak self] result in
-                guard let service = self else { return }
+            self.synchronize {result in
                 switch result {
-                case .success(let networkItems):
-                    service.todoItems = networkItems.map { TodoItem(networkItem: $0) }
-                    service.delete(item: item)
-                    service.fileCache.updateItems(service.todoItems)
-                    self?.networkService.remove(item: item) { [weak self] result in
-                        switch result {
-                        case.success(let removedItem):
-                            let item = TodoItem(networkItem: removedItem)
-                            self?.delete(item: item)
-                            self?.fileCache.remove(item)
-                            complition(.success(item))
-                        case.failure(let error):
-                            self?.fileCache.remove(item)
-                            self?.isDirty = true
-                            complition(.failure(error))
-                        }
-                    }
+                case .success:
+                    completion(.success(item))
                 case .failure(let error):
-                    self?.fileCache.remove(item)
-                    complition(.failure(error))
+                    completion(.failure(error))
                 }
             }
             return
@@ -189,68 +138,61 @@ class ToDoItemsService: ItemsService {
             switch result {
             case.success(let removedItem):
                 let item = TodoItem(networkItem: removedItem)
-                self?.delete(item: item)
-                self?.fileCache.remove(item)
-                complition(.success(item))
+                completion(.success(item))
             case.failure(let error):
-                self?.fileCache.remove(item)
                 self?.isDirty = true
-                complition(.failure(error))
+                completion(.failure(error))
             }
         }
     }
 
-    func load(complition: @escaping resultServiceComplition) {
-        self.fileCache.loadAllItems(from: filename) { [weak self] result in
-            guard let service = self else { return }
+    func load(completion: @escaping resultServiceComplition) {
+        coreDataController.load {[weak self] result in
             switch result {
-            case .success(let newItems):
-                service.todoItems = newItems
+            case .success(let items):
+                self?.todoItems = items
             case .failure(let error):
-                DispatchQueue.main.async {
-                    complition(.failure(error))
-                }
+                completion(.failure(error))
             }
+        }
 
-            if service.isFirstLaunch {
-                service.networkService.getAllTodoItems { [weak self] result in
-                    guard let service = self else { return }
-                    switch result {
-                    case .success(let networkingItems):
-                        service.todoItems = networkingItems.compactMap { TodoItem(networkItem: $0) }
-                        service.fileCache.updateItems(service.todoItems)
-                        complition(.success(()))
-                    case .failure(let error):
-                        service.isDirty = true
-                        complition(.failure(error))
-                    }
-                }
-                return
-            }
-
-            service.networkService.updateTodoItems(items: service.todoItems) { [weak self] result in
+        if isFirstLaunch {
+            networkService.getAllTodoItems { [weak self] result in
+                guard let service = self else { return }
                 switch result {
-                case .success(let networkItems):
-                    let items = networkItems.map { TodoItem(networkItem: $0) }
-                    self?.todoItems = items
-                    self?.fileCache.updateItems(items)
-                    complition(.success(()))
+                case .success(let networkingItems):
+                    let items = networkingItems.compactMap { TodoItem(networkItem: $0) }
+                    service.todoItems = items
+                    service.coreDataController.updateItems(items)
+                    completion(.success(()))
                 case .failure(let error):
-                    self?.isDirty = true
-                    complition(.failure(error))
+                    service.isDirty = true
+                    completion(.failure(error))
                 }
+            }
+            return
+        }
+
+        networkService.updateTodoItems(items: todoItems) { [weak self] result in
+            switch result {
+            case .success(let networkItems):
+                let items = networkItems.map { TodoItem(networkItem: $0) }
+                self?.todoItems = items
+                self?.coreDataController.updateItems(items)
+                completion(.success(()))
+            case .failure(let error):
+                self?.isDirty = true
+                completion(.failure(error))
             }
         }
     }
 
-    func save(complition: @escaping resultServiceComplition) {
-        fileCache.saveAllItems(to: filename) { result in
-            switch result {
-            case .success:
-                complition(.success(()))
-            case .failure(let error):
-                complition(.failure(error))
-            }
+    func save(completion: @escaping resultServiceComplition) {
+        do {
+            try coreDataController.mainContext.save()
+            completion(.success(()))
+        } catch {
+            completion(.failure(error))
         }
     }
 
@@ -273,9 +215,12 @@ class ToDoItemsService: ItemsService {
     private func synchronize(complition: @escaping todoItemsNetworkServiceComplition) {
         self.networkService.updateTodoItems(items: self.todoItems) { [weak self] result in
             switch result {
-            case .success(let items):
+            case .success(let networkItems):
+                let items = networkItems.map { TodoItem(networkItem: $0) }
+                self?.todoItems = items
+                self?.coreDataController.updateItems(items)
                 self?.isDirty = false
-                complition(.success(items))
+                complition(.success(networkItems))
             case .failure(let error):
                 self?.isDirty = true
                 complition(.failure(error))

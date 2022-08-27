@@ -24,6 +24,23 @@ struct TodoItem: Identifiable {
         self.dateOfChange = dateOfChange
     }
 
+    init (coreDataItem: TodoItemCoreData) {
+        self.id = coreDataItem.unwrappedID
+        self.text = coreDataItem.unwrappedText
+        self.isCompleted = coreDataItem.isCompleted
+        self.dateOfCreation = coreDataItem.unwrappedDateOfCreation
+        switch coreDataItem.priority {
+        case "low":
+            self.priority = .unimportant
+        case "important":
+            self.priority = .important
+        default:
+            self.priority = .common
+        }
+        self.deadline = coreDataItem.deadline
+        self.dateOfChange = coreDataItem.dateOfChange
+    }
+
     init(networkItem: TodoItemNetworking) {
         self.id = networkItem.id
         self.text = networkItem.text
