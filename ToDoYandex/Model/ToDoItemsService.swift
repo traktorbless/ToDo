@@ -188,11 +188,15 @@ class ToDoItemsService: ItemsService {
     }
 
     func save(completion: @escaping resultServiceComplition) {
-        do {
-            try coreDataController.mainContext.save()
-            completion(.success(()))
-        } catch {
-            completion(.failure(error))
+        queue.async { [weak self] in
+            self?.coreDataController.save { result in
+                switch result {
+                case .success:
+                    completion(.success(()))
+                case .failure(let error):
+                    completion(.failure(error))
+                }
+            }
         }
     }
 
