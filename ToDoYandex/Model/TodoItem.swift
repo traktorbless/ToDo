@@ -1,4 +1,5 @@
 import Foundation
+import SQLite
 
 struct TodoItem: Identifiable {
     let id: String

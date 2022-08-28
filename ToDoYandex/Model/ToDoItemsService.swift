@@ -59,7 +59,7 @@ final class ToDoItemsService: ItemsService {
     init(filename: String) {
         self._todoItems = []
         self.queue = DispatchQueue(label: Constants.queueName, attributes: .concurrent)
-        self.persistenceService = CoreDataController()
+        self.persistenceService = FileCache(filename: filename)
         self.networkService = Network()
         self.filename = filename
     }
