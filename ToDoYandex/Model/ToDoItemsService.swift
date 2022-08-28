@@ -59,7 +59,7 @@ final class ToDoItemsService: ItemsService {
     init(filename: String) {
         self._todoItems = []
         self.queue = DispatchQueue(label: Constants.queueName, attributes: .concurrent)
-        self.persistenceService = FileCache(filename: filename)
+        self.persistenceService = CoreDataController()
         self.networkService = Network()
         self.filename = filename
     }
@@ -146,40 +146,42 @@ final class ToDoItemsService: ItemsService {
 
     func load(completion: @escaping resultServiceComplition) {
         persistenceService.load(from: nil) { [weak self] result in
+            guard let service = self else {
+                return
+            }
             switch result {
             case .success(let items):
                 self?.todoItems = items
-            case .failure(let error):
-                completion(.failure(error))
-            }
-        }
-
-        if isFirstLaunch {
-            networkService.getAllTodoItems { [weak self] result in
-                guard let service = self else { return }
-                switch result {
-                case .success(let networkingItems):
-                    let items = networkingItems.compactMap { TodoItem(networkItem: $0) }
-                    service.todoItems = items
-                    service.persistenceService.updateItems(items)
-                    completion(.success(()))
-                case .failure(let error):
-                    service.isDirty = true
-                    completion(.failure(error))
+                if service.isFirstLaunch {
+                    service.networkService.getAllTodoItems { [weak self] result in
+                        guard let service = self else { return }
+                        switch result {
+                        case .success(let networkingItems):
+                            let items = networkingItems.compactMap { TodoItem(networkItem: $0) }
+                            service.todoItems = items
+                            service.persistenceService.updateItems(items)
+                            completion(.success(()))
+                        case .failure(let error):
+                            service.isDirty = true
+                            completion(.failure(error))
+                        }
+                    }
+                    return
                 }
-            }
-            return
-        }
 
-        networkService.updateTodoItems(items: todoItems) { [weak self] result in
-            switch result {
-            case .success(let networkItems):
-                let items = networkItems.map { TodoItem(networkItem: $0) }
-                self?.todoItems = items
-                self?.persistenceService.updateItems(items)
-                completion(.success(()))
+                service.networkService.updateTodoItems(items: service.todoItems) { [weak self] result in
+                    switch result {
+                    case .success(let networkItems):
+                        let items = networkItems.map { TodoItem(networkItem: $0) }
+                        self?.todoItems = items
+                        self?.persistenceService.updateItems(items)
+                        completion(.success(()))
+                    case .failure(let error):
+                        self?.isDirty = true
+                        completion(.failure(error))
+                    }
+                }
             case .failure(let error):
-                self?.isDirty = true
                 completion(.failure(error))
             }
         }

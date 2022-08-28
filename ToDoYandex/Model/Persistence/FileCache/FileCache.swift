@@ -37,48 +37,57 @@ final class FileCache: PersistenceService {
     }
 
     func load(from filename: String?, completion: @escaping loadPersistenceServiceCompletion) {
-        do {
-            let prepare: [TodoItemSQL] = try database.prepare(items).map { try $0.decode() }
-            let todoItems = prepare.map { TodoItem(item: $0) }
-            completion(.success(todoItems))
-        } catch {
-            self.createTable()
-            completion(.failure(error))
+        queue.async { [weak self] in
+            guard let fileCache = self else { return }
+            do {
+                let prepare: [TodoItemSQL] = try fileCache.database.prepare(fileCache.items).map { try $0.decode() }
+                let todoItems = prepare.map { TodoItem(item: $0) }
+                completion(.success(todoItems))
+            } catch {
+                fileCache.createTable()
+                completion(.failure(error))
+            }
         }
     }
 
     func save(to filename: String?, completion: @escaping savePersistenceServiceCompletion) {}
 
     @discardableResult func add(_ newItem: TodoItem) -> TodoItem? {
-        do {
-            try database.run(items.insert(TodoItemSQL(newItem)))
-            return newItem
-        } catch {
-            DDLogError(error)
-            return nil
+        queue.async { [weak self] in
+            guard let fileCache = self else { return }
+            do {
+                try fileCache.database.run(fileCache.items.insert(TodoItemSQL(newItem)))
+            } catch {
+                DDLogError(error)
+            }
         }
+        return newItem
     }
 
     @discardableResult func remove(_ item: TodoItem) -> TodoItem? {
-        let itemTable = items.filter(Constants.id == item.id)
-        do {
-            try database.run(itemTable.delete())
-            return item
-        } catch {
-            DDLogWarn(error)
-            return nil
+        queue.async { [weak self] in
+            guard let fileCache = self else { return }
+            let itemTable = fileCache.items.filter(Constants.id == item.id)
+            do {
+                try fileCache.database.run(itemTable.delete())
+            } catch {
+                DDLogWarn(error)
+            }
         }
+        return item
     }
 
     @discardableResult func edit(_ item: TodoItem) -> TodoItem? {
-        let itemTable = items.filter(Constants.id == item.id)
-        do {
-            try database.run(itemTable.update(TodoItemSQL(item)))
-            return item
-        } catch {
-            DDLogWarn(error)
-            return nil
+        queue.async { [weak self] in
+            guard let fileCache = self else { return }
+            let itemTable = fileCache.items.filter(Constants.id == item.id)
+            do {
+                try fileCache.database.run(itemTable.update(TodoItemSQL(item)))
+            } catch {
+                DDLogWarn(error)
+            }
         }
+        return item
     }
 
     func updateItems(_ newItems: [TodoItem]) {
