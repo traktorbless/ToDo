@@ -12,7 +12,7 @@ protocol ItemsService {
     func editItem(item: TodoItem, completion: @escaping todoItemServiceComplition)
 }
 
-class ToDoItemsService: ItemsService {
+final class ToDoItemsService: ItemsService {
 
     private enum Constants {
         static let queueName = "com.ToDoItemServiceQueue"
@@ -52,23 +52,21 @@ class ToDoItemsService: ItemsService {
     private var isDirty = false
     private let networkService: NetworkingService
     private let filename: String
-    private let fileCache: FileCacheService
-    private let coreDataController: CoreDataController
+    private let persistenceService: PersistenceService
     private let queue: DispatchQueue
     weak var delegate: ToDoItemsServiceDelegate?
 
     init(filename: String) {
         self._todoItems = []
         self.queue = DispatchQueue(label: Constants.queueName, attributes: .concurrent)
-        self.fileCache = FileCache()
-        self.coreDataController = CoreDataController()
+        self.persistenceService = CoreDataController()
         self.networkService = Network()
         self.filename = filename
     }
 
     func editItem(item: TodoItem, completion: @escaping todoItemServiceComplition) {
         edit(item: item)
-        coreDataController.edit(item)
+        persistenceService.edit(item)
         if isDirty {
             self.synchronize {result in
                 switch result {
@@ -95,7 +93,7 @@ class ToDoItemsService: ItemsService {
 
     func addNew(item: TodoItem, completion: @escaping todoItemServiceComplition) {
         add(newItem: item)
-        coreDataController.add(item)
+        persistenceService.add(item)
         if isDirty {
             self.synchronize { result in
                 switch result {
@@ -121,7 +119,7 @@ class ToDoItemsService: ItemsService {
 
     func remove(item: TodoItem, completion: @escaping todoItemServiceComplition) {
         delete(item: item)
-        coreDataController.remove(item)
+        persistenceService.remove(item)
         if isDirty {
             self.synchronize {result in
                 switch result {
@@ -147,7 +145,7 @@ class ToDoItemsService: ItemsService {
     }
 
     func load(completion: @escaping resultServiceComplition) {
-        coreDataController.load {[weak self] result in
+        persistenceService.load(from: nil) { [weak self] result in
             switch result {
             case .success(let items):
                 self?.todoItems = items
@@ -163,7 +161,7 @@ class ToDoItemsService: ItemsService {
                 case .success(let networkingItems):
                     let items = networkingItems.compactMap { TodoItem(networkItem: $0) }
                     service.todoItems = items
-                    service.coreDataController.updateItems(items)
+                    service.persistenceService.updateItems(items)
                     completion(.success(()))
                 case .failure(let error):
                     service.isDirty = true
@@ -178,7 +176,7 @@ class ToDoItemsService: ItemsService {
             case .success(let networkItems):
                 let items = networkItems.map { TodoItem(networkItem: $0) }
                 self?.todoItems = items
-                self?.coreDataController.updateItems(items)
+                self?.persistenceService.updateItems(items)
                 completion(.success(()))
             case .failure(let error):
                 self?.isDirty = true
@@ -188,14 +186,12 @@ class ToDoItemsService: ItemsService {
     }
 
     func save(completion: @escaping resultServiceComplition) {
-        queue.async { [weak self] in
-            self?.coreDataController.save { result in
-                switch result {
-                case .success:
-                    completion(.success(()))
-                case .failure(let error):
-                    completion(.failure(error))
-                }
+        persistenceService.save(to: nil) { result in
+            switch result {
+            case .success:
+                completion(.success(()))
+            case .failure(let error):
+                completion(.failure(error))
             }
         }
     }
@@ -222,7 +218,7 @@ class ToDoItemsService: ItemsService {
             case .success(let networkItems):
                 let items = networkItems.map { TodoItem(networkItem: $0) }
                 self?.todoItems = items
-                self?.coreDataController.updateItems(items)
+                self?.persistenceService.updateItems(items)
                 self?.isDirty = false
                 complition(.success(networkItems))
             case .failure(let error):

@@ -1,30 +1,44 @@
 import Foundation
 import CocoaLumberjack
+import SQLite
 
-typealias saveFileCacheServiceComplition = (Result<Void, Error>) -> Void
-typealias loadFileCacheServiceComplition = (Result<[TodoItem], Error>) -> Void
+// typealias saveFileCacheServiceCompletion = (CompletionResult<Void,Error>) -> Void
+// typealias loadFileCacheServiceCompletion = (CompletionResult<[TodoItem],Error>) -> Void
+//
+// protocol FileCacheService {
+//    func saveAllItems(
+//    to filename: String,
+//    completion: @escaping saveFileCacheServiceCompletion
+//    )
+//
+//    func loadAllItems(
+//    from filename: String,
+//    completion: @escaping loadFileCacheServiceCompletion
+//    )
+//
+//    @discardableResult func addNew(_ newItem: TodoItem) -> TodoItem?
+//
+//    @discardableResult func remove(_ item: TodoItem) -> TodoItem?
+//
+//    @discardableResult func edit(_ item: TodoItem) -> TodoItem?
+//
+//    func updateItems(_ newItems: [TodoItem])
+// }
 
-protocol FileCacheService {
-    func saveAllItems(
-    to filename: String,
-    completion: @escaping saveFileCacheServiceComplition
-    )
+final class FileCache: PersistenceService {
+    func load(from filename: String?, completion: @escaping loadPersistenceServiceCompletion) {
+        //
+    }
 
-    func loadAllItems(
-    from filename: String,
-    completion: @escaping loadFileCacheServiceComplition
-    )
+    func save(to filename: String?, completion: @escaping savePersistenceServiceCompletion) {
+        //
+    }
 
-    @discardableResult func addNew(_ newItem: TodoItem) -> TodoItem?
+    func add(_ newItem: TodoItem) -> TodoItem? {
+        //
+        return nil
+    }
 
-    @discardableResult func remove(_ item: TodoItem) -> TodoItem?
-
-    @discardableResult func edit(_ item: TodoItem) -> TodoItem?
-
-    func updateItems(_ newItems: [TodoItem])
-}
-
-final class FileCache: FileCacheService {
     private enum Constants {
         static let queueName = "com.FileCacheServiceQueue"
     }
@@ -65,12 +79,13 @@ final class FileCache: FileCacheService {
         return todoItems[itemIndex]
     }
 
-    func saveAllItems(to filename: String, completion: @escaping saveFileCacheServiceComplition) {
+    func saveAllItems(to filename: String, completion: @escaping savePersistenceServiceCompletion) {
         do {
             let fileUrl = try self.getFileURL(of: filename)
 
             queue.async { [weak self] in
                 guard let service = self else {
+
                     completion(.failure(FileCacheErrors.cannotFindSystemDirectory))
                     return
                 }
@@ -96,7 +111,7 @@ final class FileCache: FileCacheService {
         }
     }
 
-    func loadAllItems(from filename: String, completion: @escaping (Result<[TodoItem], Error>) -> Void) {
+    func load(from filename: String, completion: @escaping loadPersistenceServiceCompletion) {
         queue.async { [weak self] in
             assert(!Thread.isMainThread)
             do {

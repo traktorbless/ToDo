@@ -2,20 +2,7 @@ import Foundation
 import CoreData
 import CocoaLumberjack
 
-typealias savePersistenceServiceCompletion = (Result<Void, Error>) -> Void
-typealias loadPersistenceServiceCompletion = (Result<[TodoItem], Error>) -> Void
-typealias itemPersistenceServiceCompletion = (Result<TodoItem, Error>) -> Void
-
-protocol PersistenceService {
-    func load(to filename: String?, completion: @escaping loadPersistenceServiceCompletion)
-    func save(to filename: String?, completion: @escaping savePersistenceServiceCompletion)
-    func add(_ newItem: TodoItem) -> TodoItem?
-    func remove(_ item: TodoItem) -> TodoItem?
-    func edit(_ item: TodoItem) -> TodoItem?
-    func updateItems(_ items: [TodoItem])
-}
-
-class CoreDataController: PersistenceService {
+final class CoreDataController: PersistenceService {
     private enum Constants {
         static let persistentContainerName = "TodoItemModel"
         static let entityName = "TodoItemCoreData"
@@ -29,11 +16,13 @@ class CoreDataController: PersistenceService {
         return container
     }()
 
+    private let queue: DispatchQueue = DispatchQueue(label: "com.CoreDataControllerQueue", qos: .utility)
+
     var mainContext: NSManagedObjectContext {
         container.viewContext
     }
 
-    func load(to filename: String? = nil, completion: @escaping loadPersistenceServiceCompletion) {
+    func load(from filename: String? = nil, completion: @escaping loadPersistenceServiceCompletion) {
         do {
             let items = try mainContext.fetch(TodoItemCoreData.fetchRequest()).map { TodoItem(coreDataItem: $0) }
             completion(.success(items))
@@ -43,10 +32,12 @@ class CoreDataController: PersistenceService {
     }
 
     func save(to filename: String? = nil, completion: @escaping savePersistenceServiceCompletion) {
-        do {
-            try mainContext.save()
-        } catch {
-            completion(.failure(error))
+        queue.async { [weak self] in
+            do {
+                try self?.mainContext.save()
+            } catch {
+                completion(.failure(error))
+            }
         }
     }
 
@@ -129,8 +120,4 @@ class CoreDataController: PersistenceService {
             add(item)
         }
     }
-}
-
-enum PersistenceServiceError: Error {
-    case itemHasNotBeenFound
 }

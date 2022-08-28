@@ -13,6 +13,7 @@
 		5D0F7ABC289BD3E30033FF39 /* TasksListViewContoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D0F7AB9289BD3E30033FF39 /* TasksListViewContoller.swift */; };
 		5D19537A28B7C2870079F020 /* TodoItemCoreData+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D19537828B7C2870079F020 /* TodoItemCoreData+CoreDataClass.swift */; };
 		5D19537B28B7C2870079F020 /* TodoItemCoreData+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D19537928B7C2870079F020 /* TodoItemCoreData+CoreDataProperties.swift */; };
+		5D19537F28BB50700079F020 /* PersistenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D19537E28BB50700079F020 /* PersistenceService.swift */; };
 		5D42412C28ACD8400037E7BD /* NetworkingTodoItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D42412B28ACD8400037E7BD /* NetworkingTodoItem.swift */; };
 		5D42412F28AF6C970037E7BD /* RequestsAndResponses.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D42412E28AF6C970037E7BD /* RequestsAndResponses.swift */; };
 		5D699A4828A4D9DA0078B17E /* TodoItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D699A4728A4D9DA0078B17E /* TodoItem.swift */; };
@@ -70,6 +71,7 @@
 		5D0F7AB9289BD3E30033FF39 /* TasksListViewContoller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksListViewContoller.swift; sourceTree = "<group>"; };
 		5D19537828B7C2870079F020 /* TodoItemCoreData+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TodoItemCoreData+CoreDataClass.swift"; sourceTree = "<group>"; };
 		5D19537928B7C2870079F020 /* TodoItemCoreData+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TodoItemCoreData+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		5D19537E28BB50700079F020 /* PersistenceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceService.swift; sourceTree = "<group>"; };
 		5D42412B28ACD8400037E7BD /* NetworkingTodoItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkingTodoItem.swift; sourceTree = "<group>"; };
 		5D42412E28AF6C970037E7BD /* RequestsAndResponses.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestsAndResponses.swift; sourceTree = "<group>"; };
 		5D699A4728A4D9DA0078B17E /* TodoItem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TodoItem.swift; sourceTree = "<group>"; };
@@ -227,6 +229,7 @@
 				5D19537928B7C2870079F020 /* TodoItemCoreData+CoreDataProperties.swift */,
 				5DB99F9E28B7910A00079A0F /* TodoItemModel.xcdatamodeld */,
 				5DB99FA228B7912800079A0F /* CoreDataController.swift */,
+				5D19537E28BB50700079F020 /* PersistenceService.swift */,
 			);
 			path = Persistence;
 			sourceTree = "<group>";
@@ -449,6 +452,7 @@
 				5DB99FA028B7910A00079A0F /* TodoItemModel.xcdatamodeld in Sources */,
 				5D6BE7DC28A9630300CD4675 /* DatePickerCell.swift in Sources */,
 				5DE785F028A66CB500491A7D /* ToDoItemsService.swift in Sources */,
+				5D19537F28BB50700079F020 /* PersistenceService.swift in Sources */,
 				5D42412F28AF6C970037E7BD /* RequestsAndResponses.swift in Sources */,
 				5DCAB91828A015AB001209C2 /* Extensions.swift in Sources */,
 				5DE785ED28A66C6D00491A7D /* ColorPalette.swift in Sources */,
