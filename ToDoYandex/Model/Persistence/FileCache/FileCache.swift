@@ -31,9 +31,10 @@ final class FileCache: PersistenceService {
         do {
             self.database = try Connection("\(path)/\(filename.lowercased()).sqlite3") //
         } catch {
-            print(error)
+            DDLogError(error)
             fatalError()
         }
+        self.createTable()
     }
 
     func load(from filename: String?, completion: @escaping loadPersistenceServiceCompletion) {
@@ -44,7 +45,6 @@ final class FileCache: PersistenceService {
                 let todoItems = prepare.map { TodoItem(item: $0) }
                 completion(.success(todoItems))
             } catch {
-                fileCache.createTable()
                 completion(.failure(error))
             }
         }

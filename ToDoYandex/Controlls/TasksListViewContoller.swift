@@ -8,7 +8,7 @@ class TasksListViewContoller: UIViewController {
         static let sizeOfRadioButton: CGSize = .init(width: 34, height: 34)
         static let filename = "Items"
         static let cellIndetifire = "Cell"
-        static let cornerRaduis: CGFloat = 20
+        static let cornerRaduis: CGFloat = 25
         static let numberOfLinesInCell = 3
         static let sizeOfFooterTableViewItem: CGFloat = 20
         static let widthOfLabelNumberOfCompledTasks: CGFloat = 140

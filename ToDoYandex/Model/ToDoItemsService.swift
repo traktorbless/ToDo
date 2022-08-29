@@ -59,7 +59,7 @@ final class ToDoItemsService: ItemsService {
     init(filename: String) {
         self._todoItems = []
         self.queue = DispatchQueue(label: Constants.queueName, attributes: .concurrent)
-        self.persistenceService = CoreDataController()
+        self.persistenceService = FileCache(filename: filename)
         self.networkService = Network()
         self.filename = filename
     }
@@ -145,6 +145,23 @@ final class ToDoItemsService: ItemsService {
     }
 
     func load(completion: @escaping resultServiceComplition) {
+        if isFirstLaunch {
+            networkService.getAllTodoItems { [weak self] result in
+                guard let service = self else { return }
+                switch result {
+                case .success(let networkingItems):
+                    let items = networkingItems.compactMap { TodoItem(networkItem: $0) }
+                    service.todoItems = items
+                    service.persistenceService.updateItems(items)
+                    completion(.success(()))
+                case .failure(let error):
+                    service.isDirty = true
+                    completion(.failure(error))
+                }
+            }
+            return
+        }
+
         persistenceService.load(from: nil) { [weak self] result in
             guard let service = self else {
                 return
@@ -152,22 +169,6 @@ final class ToDoItemsService: ItemsService {
             switch result {
             case .success(let items):
                 self?.todoItems = items
-                if service.isFirstLaunch {
-                    service.networkService.getAllTodoItems { [weak self] result in
-                        guard let service = self else { return }
-                        switch result {
-                        case .success(let networkingItems):
-                            let items = networkingItems.compactMap { TodoItem(networkItem: $0) }
-                            service.todoItems = items
-                            service.persistenceService.updateItems(items)
-                            completion(.success(()))
-                        case .failure(let error):
-                            service.isDirty = true
-                            completion(.failure(error))
-                        }
-                    }
-                    return
-                }
 
                 service.networkService.updateTodoItems(items: service.todoItems) { [weak self] result in
                     switch result {
