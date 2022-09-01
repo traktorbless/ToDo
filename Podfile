@@ -5,4 +5,5 @@ use_frameworks!
 target 'ToDoYandex' do
   pod 'CocoaLumberjack/Swift'
   pod 'SwiftLint'
+  pod 'SQLite.swift', '~> 0.13.3'
 end

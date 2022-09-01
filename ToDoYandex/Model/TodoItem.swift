@@ -1,4 +1,5 @@
 import Foundation
+import SQLite
 
 struct TodoItem: Identifiable {
     let id: String
@@ -22,6 +23,23 @@ struct TodoItem: Identifiable {
         self.isCompleted = isCompleted
         self.dateOfCreation = dateOfCreation
         self.dateOfChange = dateOfChange
+    }
+
+    init (coreDataItem: TodoItemCoreData) {
+        self.id = coreDataItem.unwrappedID
+        self.text = coreDataItem.unwrappedText
+        self.isCompleted = coreDataItem.isCompleted
+        self.dateOfCreation = coreDataItem.unwrappedDateOfCreation
+        switch coreDataItem.priority {
+        case "low":
+            self.priority = .unimportant
+        case "important":
+            self.priority = .important
+        default:
+            self.priority = .common
+        }
+        self.deadline = coreDataItem.deadline
+        self.dateOfChange = coreDataItem.dateOfChange
     }
 
     init(networkItem: TodoItemNetworking) {

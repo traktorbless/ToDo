@@ -68,6 +68,12 @@ class Network: NetworkingService {
     }
 
     func add(item: TodoItem, completion: @escaping todoItemNetworkServiceComplition) {
+        let completionOnMain: todoItemNetworkServiceComplition = { result in
+            DispatchQueue.main.async {
+                completion(result)
+            }
+        }
+
         guard let postHeader = postHeader else {
             completion(.failure(NetwrokError.unsynchronizedData))
             return
@@ -93,7 +99,7 @@ class Network: NetworkingService {
             let task = URLSession.shared.dataTask(with: urlRequest) {[weak self] data, response, error in
                 assert(!Thread.isMainThread)
                 if let error = error {
-                    completion(.failure(error))
+                    completionOnMain(.failure(error))
                     return
                 }
 
@@ -103,9 +109,9 @@ class Network: NetworkingService {
                         let response = try JSONDecoder().decode(ResponseElement.self, from: data)
                         let item = response.element
                         self?.revision = response.revision
-                        completion(.success(item))
+                        completionOnMain(.success(item))
                     } catch {
-                        completion(.failure(error))
+                        completionOnMain(.failure(error))
                     }
                 }
             }
@@ -114,10 +120,17 @@ class Network: NetworkingService {
     }
 
     func getItem(id: String, completion: @escaping todoItemNetworkServiceComplition) {
+        let completionOnMain: todoItemNetworkServiceComplition = { result in
+            DispatchQueue.main.async {
+                completion(result)
+            }
+        }
+
         guard let url = URL(string: Constants.url.appending("/\(id)")) else {
-            completion(.failure(NetwrokError.invalidURL))
+            completionOnMain(.failure(NetwrokError.invalidURL))
             return
         }
+
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "GET"
         urlRequest.allHTTPHeaderFields = getHeader
@@ -125,7 +138,7 @@ class Network: NetworkingService {
             let task = URLSession.shared.dataTask(with: urlRequest) {[weak self] data, response, error in
                 assert(!Thread.isMainThread)
                 if let error = error {
-                    completion(.failure(error))
+                    completionOnMain(.failure(error))
                     return
                 }
 
@@ -135,9 +148,9 @@ class Network: NetworkingService {
                         let response = try JSONDecoder().decode(ResponseElement.self, from: data)
                         let item = response.element
                         self?.revision = response.revision
-                        completion(.success(item))
+                        completionOnMain(.success(item))
                     } catch {
-                        completion(.failure(error))
+                        completionOnMain(.failure(error))
                     }
                 }
             }
@@ -146,8 +159,14 @@ class Network: NetworkingService {
     }
 
     func updateTodoItems(items: [TodoItem], completion: @escaping todoItemsNetworkServiceComplition) {
+        let completionOnMain: todoItemsNetworkServiceComplition = { result in
+            DispatchQueue.main.async {
+                completion(result)
+            }
+        }
+
         guard let url = URL(string: Constants.url) else {
-            completion(.failure(NetwrokError.invalidURL))
+            completionOnMain(.failure(NetwrokError.invalidURL))
             return
         }
 
@@ -161,7 +180,7 @@ class Network: NetworkingService {
         do {
             urlRequest.httpBody = try JSONEncoder().encode(updatePatch)
         } catch {
-            completion(.failure(error))
+            completionOnMain(.failure(error))
             return
         }
 
@@ -169,7 +188,7 @@ class Network: NetworkingService {
             let task = URLSession.shared.dataTask(with: urlRequest) {[weak self] data, response, error in
                 assert(!Thread.isMainThread)
                 if let error = error {
-                    completion(.failure(error))
+                    completionOnMain(.failure(error))
                     return
                 }
 
@@ -179,9 +198,9 @@ class Network: NetworkingService {
                         let response = try JSONDecoder().decode(ResponseList.self, from: data)
                         let items = response.list
                         self?.revision = response.revision
-                        completion(.success(items))
+                        completionOnMain(.success(items))
                     } catch {
-                        completion(.failure(error))
+                        completionOnMain(.failure(error))
                     }
                 }
             }
@@ -191,8 +210,14 @@ class Network: NetworkingService {
     }
 
     func getAllTodoItems(completion: @escaping todoItemsNetworkServiceComplition) {
+        let completionOnMain: todoItemsNetworkServiceComplition = { result in
+            DispatchQueue.main.async {
+                completion(result)
+            }
+        }
+
         guard let url = URL(string: Constants.url) else {
-            completion(.failure(NetwrokError.invalidURL))
+            completionOnMain(.failure(NetwrokError.invalidURL))
             return
         }
 
@@ -204,7 +229,7 @@ class Network: NetworkingService {
             let task = URLSession.shared.dataTask(with: urlRequest) {[weak self] data, response, error in
                 assert(!Thread.isMainThread)
                 if let error = error {
-                    completion(.failure(error))
+                    completionOnMain(.failure(error))
                     return
                 }
 
@@ -214,9 +239,9 @@ class Network: NetworkingService {
                         let response = try JSONDecoder().decode(ResponseList.self, from: data)
                         let item = response.list
                         self?.revision = response.revision
-                        completion(.success(item))
+                        completionOnMain(.success(item))
                     } catch {
-                        completion(.failure(error))
+                        completionOnMain(.failure(error))
                     }
                 }
             }
@@ -225,13 +250,19 @@ class Network: NetworkingService {
     }
 
     func editTodoItem(_ item: TodoItem, completion: @escaping todoItemNetworkServiceComplition) {
+        let completionOnMain: todoItemNetworkServiceComplition = { result in
+            DispatchQueue.main.async {
+                completion(result)
+            }
+        }
+
         guard let postHeader = postHeader else {
-            completion(.failure(NetwrokError.unsynchronizedData))
+            completionOnMain(.failure(NetwrokError.unsynchronizedData))
             return
         }
 
         guard let url = URL(string: Constants.url.appending("/\(item.id)")) else {
-            completion(.failure(NetwrokError.invalidURL))
+            completionOnMain(.failure(NetwrokError.invalidURL))
             return
         }
         var urlRequest = URLRequest(url: url)
@@ -242,14 +273,14 @@ class Network: NetworkingService {
         do {
             urlRequest.httpBody = try JSONEncoder().encode(responseAdd)
         } catch {
-            completion(.failure(error))
+            completionOnMain(.failure(error))
             return
         }
         queue.async { [weak self] in
             let task = URLSession.shared.dataTask(with: urlRequest) {[weak self] data, response, error in
                 assert(!Thread.isMainThread)
                 if let error = error {
-                    completion(.failure(error))
+                    completionOnMain(.failure(error))
                     return
                 }
 
@@ -259,9 +290,9 @@ class Network: NetworkingService {
                         let response = try JSONDecoder().decode(ResponseElement.self, from: data)
                         let item = response.element
                         self?.revision = response.revision
-                        completion(.success(item))
+                        completionOnMain(.success(item))
                     } catch {
-                        completion(.failure(error))
+                        completionOnMain(.failure(error))
                     }
                 }
             }
@@ -270,13 +301,19 @@ class Network: NetworkingService {
     }
 
     func remove(item: TodoItem, completion: @escaping todoItemNetworkServiceComplition) {
+        let completionOnMain: todoItemNetworkServiceComplition = { result in
+            DispatchQueue.main.async {
+                completion(result)
+            }
+        }
+
         guard let postHeader = postHeader else {
-            completion(.failure(NetwrokError.unsynchronizedData))
+            completionOnMain(.failure(NetwrokError.unsynchronizedData))
             return
         }
 
         guard let url = URL(string: Constants.url.appending("/\(item.id)")) else {
-            completion(.failure(NetwrokError.invalidURL))
+            completionOnMain(.failure(NetwrokError.invalidURL))
             return
         }
         var urlRequest = URLRequest(url: url)
@@ -286,7 +323,7 @@ class Network: NetworkingService {
             let task = URLSession.shared.dataTask(with: urlRequest) {[weak self] data, response, error in
                 assert(!Thread.isMainThread)
                 if let error = error {
-                    completion(.failure(error))
+                    completionOnMain(.failure(error))
                     return
                 }
 
@@ -296,9 +333,9 @@ class Network: NetworkingService {
                         let response = try JSONDecoder().decode(ResponseElement.self, from: data)
                         let item = response.element
                         self?.revision = response.revision
-                        completion(.success(item))
+                        completionOnMain(.success(item))
                     } catch {
-                        completion(.failure(error))
+                        completionOnMain(.failure(error))
                     }
                 }
             }
